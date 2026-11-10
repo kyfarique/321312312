@@ -35,9 +35,12 @@ LANG = {
         'lang_set': "Язык изменен на Русский 🇷🇺",
         'need_reg': "Сначала пройдите регистрацию 👇",
         'regged': "Вы прошли регистрацию, теперь можете пользоваться сигналами",
-        'signal_title': "🎰 <b>Ваш сигнал на игру (3 ловушки):</b>\n\n",
+        'choose_traps': "🎰 Выберите количество ловушек:",
+        'btn_trap_1': "1 ловушка", 'btn_trap_3': "3 ловушки", 'btn_trap_5': "5 ловушек",
+        'btn_back': "⬅️ Назад",
+        'signal_title': "🎰 <b>Ваш сигнал ({traps} ловушки):</b>\n\n",
         'signal_hint': "\n👉 <b>Рекомендуемые ячейки:</b> {cells}",
-        'instr_text': "1. Регистрация: {url}\n2. Пополнить баланс\n3. Игра Mines (5x5)\n4. Ловушек: 3\n5. Ставить по сигналам бота\n6. При проигрыше — удвоить ставку",
+        'instr_text': "1. Регистрация: {url}\n2. Пополнить баланс\n3. Игра Mines (5x5)\n4. Ловушек: 3 (или по сигналу)\n5. Ставить по сигналам бота\n6. При проигрыше — удвоить ставку",
         'admin_panel': "Админ панель", 'not_admin': "Вы не админ"
     },
     'en': {
@@ -47,9 +50,12 @@ LANG = {
         'lang_set': "Language changed to English 🇬🇧",
         'need_reg': "Please register first 👇",
         'regged': "You have registered, now you can use signals",
-        'signal_title': "🎰 <b>Your game signal (3 traps):</b>\n\n",
+        'choose_traps': "🎰 Choose number of traps:",
+        'btn_trap_1': "1 trap", 'btn_trap_3': "3 traps", 'btn_trap_5': "5 traps",
+        'btn_back': "⬅️ Back",
+        'signal_title': "🎰 <b>Your signal ({traps} traps):</b>\n\n",
         'signal_hint': "\n👉 <b>Recommended cells:</b> {cells}",
-        'instr_text': "1. Register: {url}\n2. Deposit\n3. Play Mines (5x5)\n4. Traps: 3\n5. Bet on bot signals\n6. Double bet on loss",
+        'instr_text': "1. Register: {url}\n2. Deposit\n3. Play Mines (5x5)\n4. Traps: 3 (or by signal)\n5. Bet on bot signals\n6. Double bet on loss",
         'admin_panel': "Admin panel", 'not_admin': "You are not admin"
     },
     'es': {
@@ -59,9 +65,12 @@ LANG = {
         'lang_set': "Idioma cambiado a Español 🇪🇸",
         'need_reg': "Por favor, regístrate primero 👇",
         'regged': "Te has registrado, ahora puedes usar señales",
-        'signal_title': "🎰 <b>Tu señal de juego (3 trampas):</b>\n\n",
+        'choose_traps': "🎰 Elige el número de trampas:",
+        'btn_trap_1': "1 trampa", 'btn_trap_3': "3 trampas", 'btn_trap_5': "5 trampas",
+        'btn_back': "⬅️ Atrás",
+        'signal_title': "🎰 <b>Tu señal ({traps} trampas):</b>\n\n",
         'signal_hint': "\n👉 <b>Celdas recomendadas:</b> {cells}",
-        'instr_text': "1. Regístrate: {url}\n2. Deposita\n3. Juega Mines (5x5)\n4. Trampas: 3\n5. Apuesta en señales\n6. Dobla la apuesta al perder",
+        'instr_text': "1. Regístrate: {url}\n2. Deposita\n3. Juega Mines (5x5)\n4. Trampas: 3 (o por señal)\n5. Apuesta en señales\n6. Dobla la apuesta al perder",
         'admin_panel': "Panel de admin", 'not_admin': "No eres admin"
     },
     'pt': {
@@ -71,9 +80,12 @@ LANG = {
         'lang_set': "Idioma alterado para Português 🇵🇹",
         'need_reg': "Por favor, registre-se primeiro 👇",
         'regged': "Você se registrou, agora pode usar sinais",
-        'signal_title': "🎰 <b>Seu sinal de jogo (3 armadilhas):</b>\n\n",
+        'choose_traps': "🎰 Escolha o número de armadilhas:",
+        'btn_trap_1': "1 armadilha", 'btn_trap_3': "3 armadilhas", 'btn_trap_5': "5 armadilhas",
+        'btn_back': "⬅️ Voltar",
+        'signal_title': "🎰 <b>Seu sinal ({traps} armadilhas):</b>\n\n",
         'signal_hint': "\n👉 <b>Células recomendadas:</b> {cells}",
-        'instr_text': "1. Registre-se: {url}\n2. Deposite\n3. Jogue Mines (5x5)\n4. Armadilhas: 3\n5. Aposte nos sinais\n6. Dobre a aposta na perda",
+        'instr_text': "1. Registre-se: {url}\n2. Deposite\n3. Jogue Mines (5x5)\n4. Armadilhas: 3 (ou por sinal)\n5. Aposte nos sinais\n6. Dobre a aposta na perda",
         'admin_panel': "Painel de admin", 'not_admin': "Você não é admin"
     },
     'hi': {
@@ -83,9 +95,12 @@ LANG = {
         'lang_set': "भाषा हिंदी में बदल गई 🇮🇳",
         'need_reg': "कृपया पहले पंजीकरण करें 👇",
         'regged': "आप पंजीकृत हो गए हैं, अब आप सिग्नल का उपयोग कर सकते हैं",
-        'signal_title': "🎰 <b>आपका गेम सिग्नल (3 जाल):</b>\n\n",
+        'choose_traps': "🎰 जाल की संख्या चुनें:",
+        'btn_trap_1': "1 जाल", 'btn_trap_3': "3 जाल", 'btn_trap_5': "5 जाल",
+        'btn_back': "⬅️ पीछे",
+        'signal_title': "🎰 <b>आपका सिग्नल ({traps} जाल):</b>\n\n",
         'signal_hint': "\n👉 <b>अनुशंसित सेल:</b> {cells}",
-        'instr_text': "1. पंजीकरण करें: {url}\n2. जमा करें\n3. Mines खेलें (5x5)\n4. जाल: 3\n5. सिग्नल पर दांव लगाएं\n6. हारने पर दांव दोगुना करें",
+        'instr_text': "1. पंजीकरण करें: {url}\n2. जमा करें\n3. Mines खेलें (5x5)\n4. जाल: 3 (या सिग्नल से)\n5. सिग्नल पर दांव लगाएं\n6. हारने पर दांव दोगुना करें",
         'admin_panel': "एडमिन पैनल", 'not_admin': "आप एडमिन नहीं हैं"
     },
     'ar': {
@@ -95,9 +110,12 @@ LANG = {
         'lang_set': "تم تغيير اللغة إلى العربية 🇸🇦",
         'need_reg': "يرجى التسجيل أولاً 👇",
         'regged': "لقد قمت بالتسجيل، يمكنك الآن استخدام الإشارات",
-        'signal_title': "🎰 <b>إشارتك للعبة (3 فخاخ):</b>\n\n",
+        'choose_traps': "🎰 اختر عدد الفخاخ:",
+        'btn_trap_1': "فخ واحد", 'btn_trap_3': "3 فخاخ", 'btn_trap_5': "5 فخاخ",
+        'btn_back': "⬅️ رجوع",
+        'signal_title': "🎰 <b>إشارتك ({traps} فخاخ):</b>\n\n",
         'signal_hint': "\n👉 <b>الخلايا الموصى بها:</b> {cells}",
-        'instr_text': "1. التسجيل: {url}\n2. إيداع\n3. العب Mines (5x5)\n4. الفخاخ: 3\n5. راهن على الإشارات\n6. ضاعف الرهان عند الخسارة",
+        'instr_text': "1. التسجيل: {url}\n2. إيداع\n3. العب Mines (5x5)\n4. الفخاخ: 3 (أو حسب الإشارة)\n5. راهن على الإشارات\n6. ضاعف الرهان عند الخسارة",
         'admin_panel': "لوحة المسؤول", 'not_admin': "أنت لست مسؤولاً"
     }
 }
@@ -160,16 +178,26 @@ def reg_kb(uid, lang):
     kb.add(InlineKeyboardButton(LANG[lang]['btn_reg'], url=PARTNER_URL.format(uid=uid)))
     return kb
 
+def traps_menu(lang):
+    kb = InlineKeyboardMarkup(row_width=3)
+    kb.add(
+        InlineKeyboardButton(LANG[lang]['btn_trap_1'], callback_data="gen_trap_1"),
+        InlineKeyboardButton(LANG[lang]['btn_trap_3'], callback_data="gen_trap_3"),
+        InlineKeyboardButton(LANG[lang]['btn_trap_5'], callback_data="gen_trap_5")
+    )
+    kb.add(InlineKeyboardButton(LANG[lang]['btn_back'], callback_data="main_menu"))
+    return kb
+
 def sign_kb(lang):
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(
         InlineKeyboardButton(LANG[lang]['btn_sign'], callback_data="sign"),
-        InlineKeyboardButton(LANG[lang]['btn_instr'], callback_data="instr"),
+        InlineKeyboardButton(LANG[lang]['btn_back'], callback_data="main_menu"),
     )
     return kb
 
-def generate_mines_grid(lang):
-    cells = ['⭐'] * 22 + ['💣'] * 3
+def generate_mines_grid(lang, traps=3):
+    cells = ['⭐'] * (25 - traps) + ['💣'] * traps
     random.shuffle(cells)
     
     grid_text = ""
@@ -181,7 +209,8 @@ def generate_mines_grid(lang):
     random.shuffle(safe_cells)
     recommended = ", ".join(safe_cells[:4])
     
-    return LANG[lang]['signal_title'] + grid_text + LANG[lang]['signal_hint'].format(cells=recommended)
+    title = LANG[lang]['signal_title'].format(traps=traps)
+    return title + grid_text + LANG[lang]['signal_hint'].format(cells=recommended)
 
 # ---------- Handlers ----------
 @dp.message_handler(commands=["start"])
@@ -191,7 +220,6 @@ async def cmd_start(message: types.Message):
         conn.execute("INSERT OR IGNORE INTO user (user_id) VALUES (?)", (uid,))
         conn.commit()
     
-    # При старте всегда показываем выбор языка
     await bot.send_message(uid, LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query_handler(text="lang_menu")
@@ -201,19 +229,29 @@ async def cb_lang_menu(call: types.CallbackQuery):
 @dp.callback_query_handler(text_startswith="set_lang_")
 async def cb_set_lang(call: types.CallbackQuery):
     new_lang = call.data.split("_")[-1]
-    
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (new_lang, call.from_user.id))
         conn.commit()
         
     await bot.answer_callback_query(call.id, LANG[new_lang]['lang_set'])
-    
     await bot.edit_message_text(
         text=LANG[new_lang]['welcome'],
         chat_id=call.from_user.id,
         message_id=call.message.message_id,
         reply_markup=main_menu(new_lang)
     )
+
+@dp.callback_query_handler(text="main_menu")
+async def cb_main_menu(call: types.CallbackQuery):
+    user = get_user(call.from_user.id)
+    lang = user['lang'] if user else 'ru'
+    await bot.edit_message_text(
+        text=LANG[lang]['welcome'],
+        chat_id=call.from_user.id,
+        message_id=call.message.message_id,
+        reply_markup=main_menu(lang)
+    )
+    await bot.answer_callback_query(call.id)
 
 @dp.callback_query_handler(text="instr")
 async def cb_instr(call: types.CallbackQuery):
@@ -241,8 +279,30 @@ async def cb_sign(call: types.CallbackQuery):
         await bot.answer_callback_query(call.id)
         return
     
-    signal_text = generate_mines_grid(user['lang'])
-    await bot.send_message(uid, signal_text, reply_markup=sign_kb(user['lang']))
+    lang = user['lang']
+    await bot.edit_message_text(
+        text=LANG[lang]['choose_traps'],
+        chat_id=uid,
+        message_id=call.message.message_id,
+        reply_markup=traps_menu(lang)
+    )
+    await bot.answer_callback_query(call.id)
+
+@dp.callback_query_handler(text_startswith="gen_trap_")
+async def cb_gen_trap(call: types.CallbackQuery):
+    uid = call.from_user.id
+    user = get_user(uid)
+    lang = user['lang'] if user else 'ru'
+    
+    traps = int(call.data.split("_")[-1])
+    signal_text = generate_mines_grid(lang, traps)
+    
+    await bot.edit_message_text(
+        text=signal_text,
+        chat_id=uid,
+        message_id=call.message.message_id,
+        reply_markup=sign_kb(lang)
+    )
     await bot.answer_callback_query(call.id)
 
 @dp.message_handler(commands=["admin"])

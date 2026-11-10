@@ -10,7 +10,7 @@ import urllib.parse
 import requests
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton  # <-- ДОБАВЛЕНА ЭТА СТРОКА
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ============================================================
 #  НАСТРОЙКИ
@@ -191,6 +191,7 @@ async def cmd_start(message: types.Message):
         conn.execute("INSERT OR IGNORE INTO user (user_id) VALUES (?)", (uid,))
         conn.commit()
     
+    # При старте всегда показываем выбор языка
     await bot.send_message(uid, LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query_handler(text="lang_menu")
@@ -254,7 +255,7 @@ async def cmd_admin(message: types.Message):
     await bot.send_message(message.from_user.id, LANG[lang]['admin_panel'])
 
 # ============================================================
-# ВСТРОЕННЫЙ ВЕБ-СЕРВЕР
+# ВСТРОЕННЫЙ ВЕБ-СЕРВЕР ДЛЯ ПОСТБЕКОВ
 # ============================================================
 class PostbackHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):

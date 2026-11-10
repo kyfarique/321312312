@@ -29,94 +29,94 @@ DB_PATH  = os.path.join(BASE_DIR, "DataBase.db")
 # --- СЛОВАРИ ПЕРЕВОДОВ ---
 LANG = {
     'ru': {
-        'welcome': "Добро пожаловать в MINES OpenA!\n\nMines — игра в БК 1win. Наш бот на основе ИИ предугадывает расположение звёзд с вероятностью 85%.",
-        'btn_reg': "Пройти регистрацию", 'btn_instr': "Инструкция", 'btn_sign': "Выдать сигнал", 'btn_lang': "Сменить язык 🌐",
+        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nДобро пожаловать в элиту! Наш нейросетевой алгоритм анализирует игру в реальном времени и предсказывает безопасные ячейки с точностью <b>до 85%</b>.\n\n💎 Получи свой сигнал. Забери свой куш. 🚀",
+        'btn_reg': "💳 Пройти регистрацию", 'btn_instr': "📖 Инструкция", 'btn_sign': "🔮 Выдать сигнал", 'btn_lang': "🌐 Язык",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Язык изменен на Русский 🇷🇺",
-        'need_reg': "Сначала пройдите регистрацию 👇",
-        'regged': "Вы прошли регистрацию, теперь можете пользоваться сигналами",
-        'choose_traps': "🎰 Выберите количество ловушек:",
-        'btn_trap_1': "1 ловушка", 'btn_trap_3': "3 ловушки", 'btn_trap_5': "5 ловушек",
+        'need_reg': "⚠️ <b>Доступ заблокирован!</b>\n\nЧтобы разблокировать сигналы ИИ, вам нужно привязать аккаунт 1win.\n\n👇 Зарегистрируйтесь в 1 клик по кнопке ниже:",
+        'regged': "✅ <b>Успешно!</b> Аккаунт привязан. Теперь вам доступны все сигналы нейросети. Нажмите «Выдать сигнал», чтобы начать! 🚀",
+        'choose_traps': "⚙️ <b>Настройка риска</b>\n\nВыберите количество ловушек для следующего раунда:",
+        'btn_trap_1': "🟢 1 ловушка", 'btn_trap_3': "🟡 3 ловушки", 'btn_trap_5': "🔴 5 ловушек",
         'btn_back': "⬅️ Назад",
-        'signal_title': "🎰 <b>Ваш сигнал ({traps} ловушки):</b>\n\n",
-        'signal_hint': "\n👉 <b>Рекомендуемые ячейки:</b> {cells}",
-        'instr_text': "1. Регистрация: {url}\n2. Пополнить баланс\n3. Игра Mines (5x5)\n4. Ловушек: 3 (или по сигналу)\n5. Ставить по сигналам бота\n6. При проигрыше — удвоить ставку",
-        'admin_panel': "Админ панель", 'not_admin': "Вы не админ"
+        'signal_title': "🔮 <b>Анализ завершен!</b>\nКонфигурация: <b>{traps} ловушки</b>\n\n",
+        'signal_hint': "\n🎯 <b>Рекомендуемые ячейки:</b> <code>{cells}</code>\n\n🔥 <i>Удачи! Не забывайте удваивать ставку при проигрыше.</i>",
+        'instr_text': "📖 <b>КАК НАЧАТЬ ЗАРАБАТЫВАТЬ:</b>\n\n1️⃣ <b>Регистрация:</b> <a href='{url}'>КЛИКНИ СЮДА</a>\n2️⃣ <b>Депозит:</b> Пополните баланс на любую сумму.\n3️⃣ <b>Игра:</b> Перейдите в раздел <b>Mines</b> (сетка 5х5).\n4️⃣ <b>Настройка:</b> Выставьте количество ловушек по сигналу бота.\n5️⃣ <b>Действие:</b> Открывайте ячейки, которые рекомендует ИИ.\n6️⃣ <b>Страховка:</b> При проигрыше удваивайте ставку (Мартингейл).\n\n💸 <i>Профит гарантирован при строгом следовании алгоритму!</i>",
+        'admin_panel': "⚙️ Админ панель", 'not_admin': "❌ У вас нет прав администратора."
     },
     'en': {
-        'welcome': "Welcome to MINES OpenA!\n\nMines is a 1win casino game. Our AI predicts star locations with 85% accuracy.",
-        'btn_reg': "Register", 'btn_instr': "Instruction", 'btn_sign': "Get Signal", 'btn_lang': "Change language 🌐",
+        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nWelcome to the elite! Our neural network analyzes the game in real-time and predicts safe cells with <b>up to 85% accuracy</b>.\n\n💎 Get your signal. Claim your prize. 🚀",
+        'btn_reg': "💳 Register", 'btn_instr': "📖 Instruction", 'btn_sign': "🔮 Get Signal", 'btn_lang': "🌐 Language",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Language changed to English 🇬🇧",
-        'need_reg': "Please register first 👇",
-        'regged': "You have registered, now you can use signals",
-        'choose_traps': "🎰 Choose number of traps:",
-        'btn_trap_1': "1 trap", 'btn_trap_3': "3 traps", 'btn_trap_5': "5 traps",
+        'need_reg': "⚠️ <b>Access Denied!</b>\n\nTo unlock AI signals, you need to link your 1win account.\n\n👇 Register in 1 click below:",
+        'regged': "✅ <b>Success!</b> Account linked. All neural network signals are now available to you. Click 'Get Signal' to start! 🚀",
+        'choose_traps': "⚙️ <b>Risk Configuration</b>\n\nChoose the number of traps for the next round:",
+        'btn_trap_1': "🟢 1 trap", 'btn_trap_3': "🟡 3 traps", 'btn_trap_5': "🔴 5 traps",
         'btn_back': "⬅️ Back",
-        'signal_title': "🎰 <b>Your signal ({traps} traps):</b>\n\n",
-        'signal_hint': "\n👉 <b>Recommended cells:</b> {cells}",
-        'instr_text': "1. Register: {url}\n2. Deposit\n3. Play Mines (5x5)\n4. Traps: 3 (or by signal)\n5. Bet on bot signals\n6. Double bet on loss",
-        'admin_panel': "Admin panel", 'not_admin': "You are not admin"
+        'signal_title': "🔮 <b>Analysis Complete!</b>\nConfiguration: <b>{traps} traps</b>\n\n",
+        'signal_hint': "\n🎯 <b>Recommended cells:</b> <code>{cells}</code>\n\n🔥 <i>Good luck! Don't forget to double your bet on a loss.</i>",
+        'instr_text': "📖 <b>HOW TO START EARNING:</b>\n\n1️⃣ <b>Register:</b> <a href='{url}'>CLICK HERE</a>\n2️⃣ <b>Deposit:</b> Top up your balance.\n3️⃣ <b>Game:</b> Go to <b>Mines</b> (5x5 grid).\n4️⃣ <b>Setup:</b> Set traps according to the bot's signal.\n5️⃣ <b>Action:</b> Open the cells recommended by the AI.\n6️⃣ <b>Insurance:</b> On loss, double the bet (Martingale).\n\n💸 <i>Profit is guaranteed if you strictly follow the algorithm!</i>",
+        'admin_panel': "⚙️ Admin panel", 'not_admin': "❌ You don't have admin rights."
     },
     'es': {
-        'welcome': "¡Bienvenido a MINES OpenA!\n\nMines es un juego de 1win. Nuestra IA predice las estrellas con un 85% de precisión.",
-        'btn_reg': "Registrarse", 'btn_instr': "Instrucción", 'btn_sign': "Obtener señal", 'btn_lang': "Cambiar idioma 🌐",
+        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\n¡Bienvenido a la élite! Nuestra red neuronal analiza el juego en tiempo real y predice celdas seguras con <b>hasta un 85% de precisión</b>.\n\n💎 Obtén tu señal. Reclama tu premio. 🚀",
+        'btn_reg': "💳 Registrarse", 'btn_instr': "📖 Instrucción", 'btn_sign': "🔮 Obtener señal", 'btn_lang': "🌐 Idioma",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Idioma cambiado a Español 🇪🇸",
-        'need_reg': "Por favor, regístrate primero 👇",
-        'regged': "Te has registrado, ahora puedes usar señales",
-        'choose_traps': "🎰 Elige el número de trampas:",
-        'btn_trap_1': "1 trampa", 'btn_trap_3': "3 trampas", 'btn_trap_5': "5 trampas",
+        'need_reg': "⚠️ <b>¡Acceso Denegado!</b>\n\nPara desbloquear las señales de IA, debes vincular tu cuenta de 1win.\n\n👇 Regístrate en 1 clic abajo:",
+        'regged': "✅ <b>¡Éxito!</b> Cuenta vinculada. Ahora tienes acceso a todas las señales. ¡Haz clic en 'Obtener señal' para empezar! 🚀",
+        'choose_traps': "⚙️ <b>Configuración de riesgo</b>\n\nElige el número de trampas para la siguiente ronda:",
+        'btn_trap_1': "🟢 1 trampa", 'btn_trap_3': "🟡 3 trampas", 'btn_trap_5': "🔴 5 trampas",
         'btn_back': "⬅️ Atrás",
-        'signal_title': "🎰 <b>Tu señal ({traps} trampas):</b>\n\n",
-        'signal_hint': "\n👉 <b>Celdas recomendadas:</b> {cells}",
-        'instr_text': "1. Regístrate: {url}\n2. Deposita\n3. Juega Mines (5x5)\n4. Trampas: 3 (o por señal)\n5. Apuesta en señales\n6. Dobla la apuesta al perder",
-        'admin_panel': "Panel de admin", 'not_admin': "No eres admin"
+        'signal_title': "🔮 <b>¡Análisis completado!</b>\nConfiguración: <b>{traps} trampas</b>\n\n",
+        'signal_hint': "\n🎯 <b>Celdas recomendadas:</b> <code>{cells}</code>\n\n🔥 <i>¡Buena suerte! No olvides doblar la apuesta al perder.</i>",
+        'instr_text': "📖 <b>CÓMO EMPEZAR A GANAR:</b>\n\n1️⃣ <b>Registro:</b> <a href='{url}'>HAZ CLIC AQUÍ</a>\n2️⃣ <b>Depósito:</b> Recarga tu saldo.\n3️⃣ <b>Juego:</b> Ve a <b>Mines</b> (cuadrícula 5x5).\n4️⃣ <b>Configuración:</b> Establece trampas según la señal.\n5️⃣ <b>Acción:</b> Abre las celdas recomendadas por la IA.\n6️⃣ <b>Seguro:</b> Al perder, dobla la apuesta (Martingala).\n\n💸 <i>¡El beneficio está garantizado si sigues estrictamente el algoritmo!</i>",
+        'admin_panel': "⚙️ Panel de admin", 'not_admin': "❌ No tienes derechos de administrador."
     },
     'pt': {
-        'welcome': "Bem-vindo ao MINES OpenA!\n\nMines é um jogo da 1win. Nossa IA prevê estrelas com 85% de precisão.",
-        'btn_reg': "Registre-se", 'btn_instr': "Instrução", 'btn_sign': "Obter sinal", 'btn_lang': "Mudar idioma 🌐",
+        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nBem-vindo à elite! Nossa rede neural analisa o jogo em tempo real e prevê células seguras com <b>até 85% de precisão</b>.\n\n💎 Obtenha seu sinal. Reivindique seu prêmio. 🚀",
+        'btn_reg': "💳 Registre-se", 'btn_instr': "📖 Instrução", 'btn_sign': "🔮 Obter sinal", 'btn_lang': "🌐 Idioma",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Idioma alterado para Português 🇵🇹",
-        'need_reg': "Por favor, registre-se primeiro 👇",
-        'regged': "Você se registrou, agora pode usar sinais",
-        'choose_traps': "🎰 Escolha o número de armadilhas:",
-        'btn_trap_1': "1 armadilha", 'btn_trap_3': "3 armadilhas", 'btn_trap_5': "5 armadilhas",
+        'need_reg': "⚠️ <b>Acesso Negado!</b>\n\nPara desbloquear os sinais de IA, você precisa vincular sua conta 1win.\n\n👇 Registre-se em 1 clique abaixo:",
+        'regged': "✅ <b>Sucesso!</b> Conta vinculada. Agora você tem acesso a todos os sinais. Clique em 'Obter sinal' para começar! 🚀",
+        'choose_traps': "⚙️ <b>Configuração de risco</b>\n\nEscolha o número de armadilhas para a próxima rodada:",
+        'btn_trap_1': "🟢 1 armadilha", 'btn_trap_3': "🟡 3 armadilhas", 'btn_trap_5': "🔴 5 armadilhas",
         'btn_back': "⬅️ Voltar",
-        'signal_title': "🎰 <b>Seu sinal ({traps} armadilhas):</b>\n\n",
-        'signal_hint': "\n👉 <b>Células recomendadas:</b> {cells}",
-        'instr_text': "1. Registre-se: {url}\n2. Deposite\n3. Jogue Mines (5x5)\n4. Armadilhas: 3 (ou por sinal)\n5. Aposte nos sinais\n6. Dobre a aposta na perda",
-        'admin_panel': "Painel de admin", 'not_admin': "Você não é admin"
+        'signal_title': "🔮 <b>Análise concluída!</b>\nConfiguração: <b>{traps} armadilhas</b>\n\n",
+        'signal_hint': "\n🎯 <b>Células recomendadas:</b> <code>{cells}</code>\n\n🔥 <i>Boa sorte! Não se esqueça de dobrar a aposta na perda.</i>",
+        'instr_text': "📖 <b>COMO COMEÇAR A GANHAR:</b>\n\n1️⃣ <b>Registro:</b> <a href='{url}'>CLIQUE AQUI</a>\n2️⃣ <b>Depósito:</b> Recarregue seu saldo.\n3️⃣ <b>Jogo:</b> Vá para <b>Mines</b> (grade 5x5).\n4️⃣ <b>Configuração:</b> Defina as armadilhas conforme o sinal.\n5️⃣ <b>Ação:</b> Abra as células recomendadas pela IA.\n6️⃣ <b>Seguro:</b> Na perda, dobre a aposta (Martingale).\n\n💸 <i>O lucro é garantido se você seguir estritamente o algoritmo!</i>",
+        'admin_panel': "⚙️ Painel de admin", 'not_admin': "❌ Você não tem direitos de administrador."
     },
     'hi': {
-        'welcome': "MINES OpenA में आपका स्वागत है!\n\nMines एक 1win गेम है। हमारा AI 85% सटीकता के साथ सितारों की भविष्यवाणी करता है।",
-        'btn_reg': "पंजीकरण करें", 'btn_instr': "निर्देश", 'btn_sign': "सिग्नल प्राप्त करें", 'btn_lang': "भाषा बदलें 🌐",
+        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nकुलीन वर्ग में आपका स्वागत है! हमारा न्यूरल नेटवर्क वास्तविक समय में गेम का विश्लेषण करता है और <b>85% तक सटीकता</b> के साथ सुरक्षित सेल की भविष्यवाणी करता है।\n\n💎 अपना सिग्नल प्राप्त करें। अपना पुरस्कार प्राप्त करें। 🚀",
+        'btn_reg': "💳 पंजीकरण करें", 'btn_instr': "📖 निर्देश", 'btn_sign': "🔮 सिग्नल प्राप्त करें", 'btn_lang': "🌐 भाषा",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "भाषा हिंदी में बदल गई 🇮🇳",
-        'need_reg': "कृपया पहले पंजीकरण करें 👇",
-        'regged': "आप पंजीकृत हो गए हैं, अब आप सिग्नल का उपयोग कर सकते हैं",
-        'choose_traps': "🎰 जाल की संख्या चुनें:",
-        'btn_trap_1': "1 जाल", 'btn_trap_3': "3 जाल", 'btn_trap_5': "5 जाल",
+        'need_reg': "⚠️ <b>पहुंच अस्वीकृत!</b>\n\nAI सिग्नल अनलॉक करने के लिए, आपको अपना 1win खाता लिंक करना होगा।\n\n👇 नीचे 1 क्लिक में पंजीकरण करें:",
+        'regged': "✅ <b>सफलता!</b> खाता लिंक हो गया। अब आपके पास सभी सिग्नल हैं। शुरू करने के लिए 'सिग्नल प्राप्त करें' पर क्लिक करें! 🚀",
+        'choose_traps': "⚙️ <b>जोखिम कॉन्फ़िगरेशन</b>\n\nअगले दौर के लिए जाल की संख्या चुनें:",
+        'btn_trap_1': "🟢 1 जाल", 'btn_trap_3': "🟡 3 जाल", 'btn_trap_5': "🔴 5 जाल",
         'btn_back': "⬅️ पीछे",
-        'signal_title': "🎰 <b>आपका सिग्नल ({traps} जाल):</b>\n\n",
-        'signal_hint': "\n👉 <b>अनुशंसित सेल:</b> {cells}",
-        'instr_text': "1. पंजीकरण करें: {url}\n2. जमा करें\n3. Mines खेलें (5x5)\n4. जाल: 3 (या सिग्नल से)\n5. सिग्नल पर दांव लगाएं\n6. हारने पर दांव दोगुना करें",
-        'admin_panel': "एडमिन पैनल", 'not_admin': "आप एडमिन नहीं हैं"
+        'signal_title': "🔮 <b>विश्लेषण पूरा हुआ!</b>\nकॉन्फ़िगरेशन: <b>{traps} जाल</b>\n\n",
+        'signal_hint': "\n🎯 <b>अनुशंसित सेल:</b> <code>{cells}</code>\n\n🔥 <i>शुभकामनाएं! हारने पर दांव दोगुना करना न भूलें।</i>",
+        'instr_text': "📖 <b>कमाई कैसे शुरू करें:</b>\n\n1️⃣ <b>पंजीकरण:</b> <a href='{url}'>यहाँ क्लिक करें</a>\n2️⃣ <b>जमा:</b> अपना बैलेंस टॉप अप करें।\n3️⃣ <b>गेम:</b> <b>Mines</b> (5x5 ग्रिड) पर जाएं।\n4️⃣ <b>सेटअप:</b> सिग्नल के अनुसार जाल सेट करें।\n5️⃣ <b>कार्रवाई:</b> AI द्वारा अनुशंसित सेल खोलें।\n6️⃣ <b>बीमा:</b> हारने पर, दांव दोगुना करें (मार्टिंगेल)।\n\n💸 <i>यदि आप सख्ती से एल्गोरिदम का पालन करते हैं तो लाभ की गारंटी है!</i>",
+        'admin_panel': "⚙️ एडमिन पैनल", 'not_admin': "❌ आपके पास एडमिन अधिकार नहीं हैं।"
     },
     'ar': {
-        'welcome': "مرحبًا بك في MINES OpenA!\n\nMines هي لعبة 1win. يتوقع الذكاء الاصطناعي لدينا مواقع النجوم بدقة 85٪.",
-        'btn_reg': "التسجيل", 'btn_instr': "تعليمات", 'btn_sign': "الحصول على إشارة", 'btn_lang': "تغيير اللغة 🌐",
+        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nمرحبًا بك في النخبة! تحلل شبكتنا العصبية اللعبة في الوقت الفعلي وتتنبأ بالخلايا الآمنة بدقة <b>تصل إلى 85٪</b>.\n\n💎 احصل على إشارتك. استلم جائزتك. 🚀",
+        'btn_reg': "💳 التسجيل", 'btn_instr': "📖 تعليمات", 'btn_sign': "🔮 الحصول على إشارة", 'btn_lang': "🌐 اللغة",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "تم تغيير اللغة إلى العربية 🇸🇦",
-        'need_reg': "يرجى التسجيل أولاً 👇",
-        'regged': "لقد قمت بالتسجيل، يمكنك الآن استخدام الإشارات",
-        'choose_traps': "🎰 اختر عدد الفخاخ:",
-        'btn_trap_1': "فخ واحد", 'btn_trap_3': "3 فخاخ", 'btn_trap_5': "5 فخاخ",
+        'need_reg': "⚠️ <b>تم رفض الوصول!</b>\n\nلفتح إشارات الذكاء الاصطناعي، تحتاج إلى ربط حسابك في 1win.\n\n👇 سجل بنقرة واحدة أدناه:",
+        'regged': "✅ <b>نجاح!</b> تم ربط الحساب. جميع الإشارات متاحة لك الآن. انقر فوق 'الحصول على إشارة' للبدء! 🚀",
+        'choose_traps': "⚙️ <b>تكوين المخاطر</b>\n\nاختر عدد الفخاخ للجولة القادمة:",
+        'btn_trap_1': "🟢 فخ واحد", 'btn_trap_3': "🟡 3 فخاخ", 'btn_trap_5': "🔴 5 فخاخ",
         'btn_back': "⬅️ رجوع",
-        'signal_title': "🎰 <b>إشارتك ({traps} فخاخ):</b>\n\n",
-        'signal_hint': "\n👉 <b>الخلايا الموصى بها:</b> {cells}",
-        'instr_text': "1. التسجيل: {url}\n2. إيداع\n3. العب Mines (5x5)\n4. الفخاخ: 3 (أو حسب الإشارة)\n5. راهن على الإشارات\n6. ضاعف الرهان عند الخسارة",
-        'admin_panel': "لوحة المسؤول", 'not_admin': "أنت لست مسؤولاً"
+        'signal_title': "🔮 <b>اكتمل التحليل!</b>\nالتكوين: <b>{traps} فخاخ</b>\n\n",
+        'signal_hint': "\n🎯 <b>الخلايا الموصى بها:</b> <code>{cells}</code>\n\n🔥 <i>حظا سعيدا! لا تنس مضاعفة الرهان عند الخسارة.</i>",
+        'instr_text': "📖 <b>كيف تبدأ الكسب:</b>\n\n1️⃣ <b>التسجيل:</b> <a href='{url}'>انقر هنا</a>\n2️⃣ <b>إيداع:</b> اشحن رصيدك.\n3️⃣ <b>اللعبة:</b> انتقل إلى <b>Mines</b> (شبكة 5x5).\n4️⃣ <b>الإعداد:</b> اضبط الفخاخ وفقا للإشارة.\n5️⃣ <b>الإجراء:</b> افتح الخلايا الموصى بها من قبل الذكاء الاصطناعي.\n6️⃣ <b>التأمين:</b> عند الخسارة، ضاعف الرهان (مارتينجال).\n\n💸 <i>الربح مضمون إذا اتبعت الخوارزمية بدقة!</i>",
+        'admin_panel': "⚙️ لوحة المسؤول", 'not_admin': "❌ ليس لديك حقوق المسؤول."
     }
 }
 
@@ -197,20 +197,24 @@ def sign_kb(lang):
     return kb
 
 def generate_mines_grid(lang, traps=3):
+    # Генерируем сетку
     cells = ['⭐'] * (25 - traps) + ['💣'] * traps
     random.shuffle(cells)
     
+    # Форматируем сетку 5x5
     grid_text = ""
     for i in range(5):
         row = cells[i*5:(i+1)*5]
         grid_text += " ".join(row) + "\n"
         
+    # Ищем безопасные ячейки
     safe_cells = [str(i+1) for i, cell in enumerate(cells) if cell == '⭐']
     random.shuffle(safe_cells)
     recommended = ", ".join(safe_cells[:4])
     
     title = LANG[lang]['signal_title'].format(traps=traps)
-    return title + grid_text + LANG[lang]['signal_hint'].format(cells=recommended)
+    # Оборачиваем сетку в <code> для ровного шрифта
+    return title + f"<code>{grid_text}</code>" + LANG[lang]['signal_hint'].format(cells=recommended)
 
 # ---------- Handlers ----------
 @dp.message_handler(commands=["start"])
@@ -360,7 +364,7 @@ class PostbackHandler(http.server.BaseHTTPRequestHandler):
             text = LANG[lang]['regged']
             url = (
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                f"?chat_id={uid}&text={requests.utils.quote(text)}"
+                f"?chat_id={uid}&text={requests.utils.quote(text)}&parse_mode=HTML"
             )
             try:
                 requests.get(url, timeout=10)

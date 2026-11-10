@@ -30,7 +30,7 @@ LANG = {
     'ru': {
         'welcome': "Добро пожаловать в MINES OpenA!\n\nMines — игра в БК 1win. Наш бот на основе ИИ предугадывает расположение звёзд с вероятностью 85%.",
         'btn_reg': "Пройти регистрацию", 'btn_instr': "Инструкция", 'btn_sign': "Выдать сигнал", 'btn_lang': "Сменить язык 🌐",
-        'choose_lang': "Выберите язык / Choose language:",
+        'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Язык изменен на Русский 🇷🇺",
         'need_reg': "Сначала пройдите регистрацию 👇",
         'regged': "Вы прошли регистрацию, теперь можете пользоваться сигналами",
@@ -42,7 +42,7 @@ LANG = {
     'en': {
         'welcome': "Welcome to MINES OpenA!\n\nMines is a 1win casino game. Our AI predicts star locations with 85% accuracy.",
         'btn_reg': "Register", 'btn_instr': "Instruction", 'btn_sign': "Get Signal", 'btn_lang': "Change language 🌐",
-        'choose_lang': "Выберите язык / Choose language:",
+        'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Language changed to English 🇬🇧",
         'need_reg': "Please register first 👇",
         'regged': "You have registered, now you can use signals",
@@ -54,7 +54,7 @@ LANG = {
     'es': {
         'welcome': "¡Bienvenido a MINES OpenA!\n\nMines es un juego de 1win. Nuestra IA predice las estrellas con un 85% de precisión.",
         'btn_reg': "Registrarse", 'btn_instr': "Instrucción", 'btn_sign': "Obtener señal", 'btn_lang': "Cambiar idioma 🌐",
-        'choose_lang': "Выберите язык / Choose language:",
+        'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Idioma cambiado a Español 🇪🇸",
         'need_reg': "Por favor, regístrate primero 👇",
         'regged': "Te has registrado, ahora puedes usar señales",
@@ -66,7 +66,7 @@ LANG = {
     'pt': {
         'welcome': "Bem-vindo ao MINES OpenA!\n\nMines é um jogo da 1win. Nossa IA prevê estrelas com 85% de precisão.",
         'btn_reg': "Registre-se", 'btn_instr': "Instrução", 'btn_sign': "Obter sinal", 'btn_lang': "Mudar idioma 🌐",
-        'choose_lang': "Выберите язык / Choose language:",
+        'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Idioma alterado para Português 🇵🇹",
         'need_reg': "Por favor, registre-se primeiro 👇",
         'regged': "Você se registrou, agora pode usar sinais",
@@ -78,7 +78,7 @@ LANG = {
     'hi': {
         'welcome': "MINES OpenA में आपका स्वागत है!\n\nMines एक 1win गेम है। हमारा AI 85% सटीकता के साथ सितारों की भविष्यवाणी करता है।",
         'btn_reg': "पंजीकरण करें", 'btn_instr': "निर्देश", 'btn_sign': "सिग्नल प्राप्त करें", 'btn_lang': "भाषा बदलें 🌐",
-        'choose_lang': "Выберите язык / Choose language:",
+        'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "भाषा हिंदी में बदल गई 🇮🇳",
         'need_reg': "कृपया पहले पंजीकरण करें 👇",
         'regged': "आप पंजीकृत हो गए हैं, अब आप सिग्नल का उपयोग कर सकते हैं",
@@ -90,7 +90,7 @@ LANG = {
     'ar': {
         'welcome': "مرحبًا بك في MINES OpenA!\n\nMines هي لعبة 1win. يتوقع الذكاء الاصطناعي لدينا مواقع النجوم بدقة 85٪.",
         'btn_reg': "التسجيل", 'btn_instr': "تعليمات", 'btn_sign': "الحصول على إشارة", 'btn_lang': "تغيير اللغة 🌐",
-        'choose_lang': "Выберите язык / Choose language:",
+        'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "تم تغيير اللغة إلى العربية 🇸🇦",
         'need_reg': "يرجى التسجيل أولاً 👇",
         'regged': "لقد قمت بالتسجيل، يمكنك الآن استخدام الإشارات",
@@ -124,7 +124,6 @@ def get_user(uid: int):
     with sqlite3.connect(DB_PATH) as conn:
         row = conn.execute("SELECT postback_id, language FROM user WHERE user_id = ?", (uid,)).fetchone()
         if row:
-            # Если язык вдруг не найден в словаре, ставим ru
             lang = row[1] if row[1] in LANG else 'ru'
             return {"postback_id": row[0], "lang": lang}
     return None
@@ -132,6 +131,18 @@ def get_user(uid: int):
 # ---------- Bot ----------
 bot = Bot(token=BOT_TOKEN, disable_web_page_preview=True, parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot, storage=MemoryStorage())
+
+def get_lang_kb():
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.add(
+        InlineKeyboardButton("🇷🇺 Русский", callback_data="set_lang_ru"),
+        InlineKeyboardButton("🇬🇧 English", callback_data="set_lang_en"),
+        InlineKeyboardButton("🇪🇸 Español", callback_data="set_lang_es"),
+        InlineKeyboardButton("🇵🇹 Português", callback_data="set_lang_pt"),
+        InlineKeyboardButton("🇮🇳 हिंदी", callback_data="set_lang_hi"),
+        InlineKeyboardButton("🇸🇦 العربية", callback_data="set_lang_ar")
+    )
+    return kb
 
 def main_menu(lang):
     kb = InlineKeyboardMarkup(row_width=1)
@@ -179,34 +190,32 @@ async def cmd_start(message: types.Message):
         conn.execute("INSERT OR IGNORE INTO user (user_id) VALUES (?)", (uid,))
         conn.commit()
     
-    user = get_user(uid)
-    lang = user['lang'] if user else 'ru'
-    
-    # Если при первом заходе язык не выбран, можно показать приветствие на английском или русском (по умолчанию ru)
-    await bot.send_message(uid, LANG[lang]['welcome'], reply_markup=main_menu(lang))
+    # При команде /start ВСЕГДА показываем выбор языка
+    await bot.send_message(uid, LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query_handler(text="lang_menu")
 async def cb_lang_menu(call: types.CallbackQuery):
-    # Делаем сетку 2x3 для 6 языков
-    kb = InlineKeyboardMarkup(row_width=2)
-    kb.add(
-        InlineKeyboardButton("🇷🇺 Русский", callback_data="set_lang_ru"),
-        InlineKeyboardButton("🇬🇧 English", callback_data="set_lang_en"),
-        InlineKeyboardButton("🇪🇸 Español", callback_data="set_lang_es"),
-        InlineKeyboardButton("🇵🇹 Português", callback_data="set_lang_pt"),
-        InlineKeyboardButton("🇮🇳 हिंदी", callback_data="set_lang_hi"),
-        InlineKeyboardButton("🇸🇦 العربية", callback_data="set_lang_ar")
-    )
-    await bot.edit_message_text(LANG['ru']['choose_lang'], call.from_user.id, call.message.message_id, reply_markup=kb)
+    # Вызов выбора языка из главного меню
+    await bot.edit_message_text(LANG['ru']['choose_lang'], call.from_user.id, call.message.message_id, reply_markup=get_lang_kb())
 
 @dp.callback_query_handler(text_startswith="set_lang_")
 async def cb_set_lang(call: types.CallbackQuery):
     new_lang = call.data.split("_")[-1]
+    
+    # Сохраняем язык в БД
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (new_lang, call.from_user.id))
         conn.commit()
+        
     await bot.answer_callback_query(call.id, LANG[new_lang]['lang_set'])
-    await bot.edit_message_text(LANG[new_lang]['welcome'], call.from_user.id, call.message.message_id, reply_markup=main_menu(new_lang))
+    
+    # Показываем приветствие и главное меню на выбранном языке
+    await bot.edit_message_text(
+        text=LANG[new_lang]['welcome'],
+        chat_id=call.from_user.id,
+        message_id=call.message.message_id,
+        reply_markup=main_menu(new_lang)
+    )
 
 @dp.callback_query_handler(text="instr")
 async def cb_instr(call: types.CallbackQuery):

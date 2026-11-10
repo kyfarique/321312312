@@ -10,6 +10,7 @@ import urllib.parse
 import requests
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton  # <-- ДОБАВЛЕНА ЭТА СТРОКА
 
 # ============================================================
 #  НАСТРОЙКИ
@@ -190,26 +191,22 @@ async def cmd_start(message: types.Message):
         conn.execute("INSERT OR IGNORE INTO user (user_id) VALUES (?)", (uid,))
         conn.commit()
     
-    # При команде /start ВСЕГДА показываем выбор языка
     await bot.send_message(uid, LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query_handler(text="lang_menu")
 async def cb_lang_menu(call: types.CallbackQuery):
-    # Вызов выбора языка из главного меню
     await bot.edit_message_text(LANG['ru']['choose_lang'], call.from_user.id, call.message.message_id, reply_markup=get_lang_kb())
 
 @dp.callback_query_handler(text_startswith="set_lang_")
 async def cb_set_lang(call: types.CallbackQuery):
     new_lang = call.data.split("_")[-1]
     
-    # Сохраняем язык в БД
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (new_lang, call.from_user.id))
         conn.commit()
         
     await bot.answer_callback_query(call.id, LANG[new_lang]['lang_set'])
     
-    # Показываем приветствие и главное меню на выбранном языке
     await bot.edit_message_text(
         text=LANG[new_lang]['welcome'],
         chat_id=call.from_user.id,

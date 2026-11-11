@@ -9,6 +9,7 @@ import urllib.parse
 import urllib.request
 import datetime
 import asyncio
+import json
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command, CommandObject
@@ -17,13 +18,11 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 
 # ============================================================
-#  НАСТРОЙКИ MINES BOT
+#  НАСТРОЙКИ MINES
 # ============================================================
-BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" # Токен Mines-бота
+BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ"
 ADMIN_ID  = "6109042131"
 WEB_PORT  = int(os.getenv("PORT", "5000"))
-
-# Ссылка для Mines (замени на свою партнерскую, если нужно)
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
 
 # ============================================================
@@ -130,40 +129,25 @@ def sign_kb(lang):
 def generate_mines_grid(lang, traps, signals_left_str):
     cells = ['⭐'] * (25 - traps) + ['💣'] * traps
     random.shuffle(cells)
-    
     grid_text = ""
     for i in range(5):
         row = cells[i*5:(i+1)*5]
         grid_text += " ".join(row) + "\n"
-        
     safe_cells = [str(i+1) for i, cell in enumerate(cells) if cell == '⭐']
     random.shuffle(safe_cells)
     recommended = ", ".join(safe_cells[:4])
-    
     title = LANG[lang]['signal_title'].format(traps=traps)
     hint = LANG[lang]['signal_hint'].format(cells=recommended, left=signals_left_str)
-    
     return title + f"<code>{grid_text}</code>" + hint
 
-# ============================================================
-# НОВАЯ ФУНКЦИЯ: ФЕЙКОВЫЙ ВЫИГРЫШ (СОЦИАЛЬНОЕ ДОКАЗАТЕЛЬСТВО)
-# ============================================================
 def get_fake_win(lang='ru'):
-    names = ["Alex", "Max", "Ivan", "Denis", "Artem", "Vlad", "Nikita", "User99", "Player777", "Gambler", "Favour", "Joyce Appiah", "Murilo Hodas"]
+    names = ["Alex", "Max", "Ivan", "Denis", "Artem", "Vlad", "Favour", "Joyce Appiah", "Murilo Hodas"]
     name = random.choice(names)
-    # Сумма от 500 до 85 000
     win = random.randint(500, 85000)
-    # Кеф от 1.2 до 9.5
     mult = round(random.uniform(1.2, 9.5), 2)
-    
-    if lang == 'ru':
-        return f"🔥 <i>{name} только что забрал {win:,} ₽ в Mines (x{mult})!</i>"
-    else:
-        return f"🔥 <i>{name} just cashed out ${win:,} in Mines (x{mult})!</i>"
-# ============================================================
+    if lang == 'ru': return f"🔥 <i>{name} только что забрал {win:,} ₽ в Mines (x{mult})!</i>"
+    else: return f"🔥 <i>{name} just cashed out ${win:,} in Mines (x{mult})!</i>"
 
-
-# ---------- ХЕНДЛЕРЫ ----------
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, command: CommandObject):
     uid = message.from_user.id
@@ -176,28 +160,20 @@ async def cmd_start(message: types.Message, command: CommandObject):
     await message.answer(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query(F.data == "lang_menu")
-async def cb_lang_menu(call: types.CallbackQuery): 
-    await call.message.edit_text(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
+async def cb_lang_menu(call: types.CallbackQuery): await call.message.edit_text(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query(F.data.startswith("set_lang_"))
 async def cb_set_lang(call: types.CallbackQuery):
     lang = call.data.split("_")[-1]
     with sqlite3.connect(DB_PATH) as conn: conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (lang, call.from_user.id)); conn.commit()
     await call.answer(LANG[lang]['lang_set'])
-    
-    # Добавляем фейковый выигрыш в приветствие
-    fake_win = get_fake_win(lang)
-    welcome_text = f"{LANG[lang]['welcome']}\n\n{fake_win}"
+    welcome_text = f"{LANG[lang]['welcome']}\n\n{get_fake_win(lang)}"
     await call.message.edit_text(welcome_text, reply_markup=main_menu(lang))
 
 @dp.callback_query(F.data == "main_menu")
 async def cb_main(call: types.CallbackQuery):
     u = get_user(call.from_user.id); lang = u['lang'] if u else 'ru'
-    
-    # Каждый раз при возврате в меню показываем новый фейковый выигрыш
-    fake_win = get_fake_win(lang)
-    welcome_text = f"{LANG[lang]['welcome']}\n\n{fake_win}"
-    
+    welcome_text = f"{LANG[lang]['welcome']}\n\n{get_fake_win(lang)}"
     await call.message.edit_text(welcome_text, reply_markup=main_menu(lang)); await call.answer()
 
 @dp.callback_query(F.data == "support")
@@ -235,45 +211,32 @@ async def cb_sign(call: types.CallbackQuery):
 async def cb_gen(call: types.CallbackQuery):
     uid = call.from_user.id
     u = get_user(uid); lang = u['lang'] if u else 'ru'
-    
-    # 🔥 ЧИТ-КОД: БЕЗЛИМИТ ДЛЯ АДМИНА 🔥
     is_admin = (str(uid) == str(ADMIN_ID))
-    
     today = datetime.date.today().isoformat()
     daily = 0 if u['last_signal_date'] != today else u['daily_signals']
     
     if not is_admin:
-        # Для обычных юзеров лимит 5
         if daily >= 5:
             await call.answer("⚠️ Лимит исчерпан!", show_alert=True)
-            await call.message.answer(LANG[lang]['limit_msg'])
-            return
+            await call.message.answer(LANG[lang]['limit_msg']); return
         daily += 1
         with sqlite3.connect(DB_PATH) as conn:
-            conn.execute("UPDATE user SET daily_signals = ?, last_signal_date = ? WHERE user_id = ?", (daily, today, uid))
-            conn.commit()
+            conn.execute("UPDATE user SET daily_signals = ?, last_signal_date = ? WHERE user_id = ?", (daily, today, uid)); conn.commit()
         signals_left_str = LANG[lang]['left_signals'].format(left=5 - daily)
     else:
-        # Для админа безлимит
         with sqlite3.connect(DB_PATH) as conn:
-            conn.execute("UPDATE user SET last_signal_date = ? WHERE user_id = ?", (today, uid))
-            conn.commit()
+            conn.execute("UPDATE user SET last_signal_date = ? WHERE user_id = ?", (today, uid)); conn.commit()
         signals_left_str = "💡 <i>Осталось сигналов: ∞ (God Mode)</i>\n\n"
-    # --------------------------------------
 
     traps = int(call.data.split("_")[-1])
     signal_text = generate_mines_grid(lang, traps, signals_left_str)
-    
-    await call.message.edit_text(text=signal_text, reply_markup=sign_kb(lang))
-    await call.answer()
+    await call.message.edit_text(text=signal_text, reply_markup=sign_kb(lang)); await call.answer()
 
 @dp.message(Command("admin"))
 async def cmd_adm(msg: types.Message):
     u = get_user(msg.from_user.id); lang = u['lang'] if u else 'ru'
-    if str(msg.from_user.id) == str(ADMIN_ID):
-        await msg.answer(LANG[lang]['admin_panel'])
-    else:
-        await msg.answer(LANG[lang]['not_admin'])
+    if str(msg.from_user.id) == str(ADMIN_ID): await msg.answer(LANG[lang]['admin_panel'])
+    else: await msg.answer(LANG[lang]['not_admin'])
 
 @dp.message(Command("top"))
 async def cmd_top(msg: types.Message):
@@ -283,13 +246,23 @@ async def cmd_top(msg: types.Message):
     text = "🏆 <b>ТОП-10</b>\n\n" + "".join([f"{i}. ID: <code>{r[0]}</code> — <b>{r[1]} билетов</b>\n" for i, r in enumerate(rows, 1)]) if rows else "Нет рефералов."
     await msg.answer(text)
 
-# ============================================================
-# ВСТРОЕННЫЙ ВЕБ-СЕРВЕР ДЛЯ ПОСТБЕКОВ
-# ============================================================
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         p = urllib.parse.urlparse(self.path)
         if p.path == '/health': self.send_response(200); self.end_headers(); self.wfile.write(b'{"ok": true}'); return
+        
+        if p.path == '/api/stats':
+            with sqlite3.connect(DB_PATH) as conn:
+                total = conn.execute("SELECT COUNT(*) FROM user").fetchone()[0]
+                regs = conn.execute("SELECT COUNT(*) FROM user WHERE postback_id IS NOT NULL").fetchone()[0]
+                recent = conn.execute("SELECT user_id, postback_id FROM user WHERE postback_id IS NOT NULL ORDER BY rowid DESC LIMIT 10").fetchall()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({"total": total, "regs": regs, "recent": recent}).encode())
+            return
+
         if p.path == '/postback':
             q = urllib.parse.parse_qs(p.query); s1, s2 = q.get('sub1',[''])[0], q.get('subid',[''])[0]
             if not s1 or not s2: self.send_response(400); self.end_headers(); return

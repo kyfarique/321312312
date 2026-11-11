@@ -37,7 +37,7 @@ LANG = {
         'regged': "✅ <b>Успешно!</b> Аккаунт привязан. Теперь вам доступны все сигналы нейросети. Нажмите «Выдать сигнал», чтобы начать! 🚀",
         'choose_traps': "⚙️ <b>Настройка риска</b>\n\nВыберите количество ловушек для следующего раунда:",
         'btn_trap_1': "🟢 1 ловушка", 'btn_trap_3': "🟡 3 ловушки", 'btn_trap_5': "🔴 5 ловушек",
-        'btn_back': "⬅️ Назад",
+        'btn_main': "⬅️ Главное меню",
         'signal_title': "🔮 <b>Анализ завершен!</b>\nКонфигурация: <b>{traps} ловушки</b>\n\n",
         'signal_hint': "\n🎯 <b>Рекомендуемые ячейки:</b> <code>{cells}</code>\n\n🔥 <i>Удачи! Не забывайте удваивать ставку при проигрыше.</i>",
         'instr_text': "📖 <b>КАК НАЧАТЬ ЗАРАБАТЫВАТЬ:</b>\n\n1️⃣ <b>Регистрация:</b> <a href='{url}'>КЛИКНИ СЮДА</a>\n2️⃣ <b>Депозит:</b> Пополните баланс.\n3️⃣ <b>Игра:</b> Перейдите в раздел <b>Mines</b>.\n4️⃣ <b>Настройка:</b> Выставьте ловушки по сигналу.\n5️⃣ <b>Действие:</b> Открывайте ячейки от ИИ.\n6️⃣ <b>Страховка:</b> При проигрыше удваивайте ставку.\n\n💸 <i>Профит гарантирован при строгом следовании!</i>",
@@ -56,7 +56,7 @@ LANG = {
         'regged': "✅ <b>Success!</b> Account linked. Click 'Get Signal' to start! 🚀",
         'choose_traps': "⚙️ <b>Risk Configuration</b>\n\nChoose the number of traps:",
         'btn_trap_1': "🟢 1 trap", 'btn_trap_3': "🟡 3 traps", 'btn_trap_5': "🔴 5 traps",
-        'btn_back': "⬅️ Back",
+        'btn_main': "⬅️ Main Menu",
         'signal_title': "🔮 <b>Analysis Complete!</b>\nConfiguration: <b>{traps} traps</b>\n\n",
         'signal_hint': "\n🎯 <b>Recommended cells:</b> <code>{cells}</code>\n\n🔥 <i>Good luck!</i>",
         'instr_text': "📖 <b>HOW TO START EARNING:</b>\n\n1️⃣ <b>Register:</b> <a href='{url}'>CLICK HERE</a>\n2️⃣ <b>Deposit:</b> Top up your balance.\n3️⃣ <b>Game:</b> Go to <b>Mines</b>.\n4️⃣ <b>Setup:</b> Set traps by signal.\n5️⃣ <b>Action:</b> Open cells from AI.\n6️⃣ <b>Insurance:</b> Double bet on loss.",
@@ -75,7 +75,7 @@ LANG = {
         'regged': "✅ <b>¡Éxito!</b> Cuenta vinculada. 🚀",
         'choose_traps': "⚙️ <b>Configuración de riesgo</b>\n\nElige el número de trampas:",
         'btn_trap_1': "🟢 1 trampa", 'btn_trap_3': "🟡 3 trampas", 'btn_trap_5': "🔴 5 trampas",
-        'btn_back': "⬅️ Atrás",
+        'btn_main': "⬅️ Menú Principal",
         'signal_title': "🔮 <b>¡Análisis completado!</b>\nTrampas: <b>{traps}</b>\n\n",
         'signal_hint': "\n🎯 <b>Celdas recomendadas:</b> <code>{cells}</code>\n\n🔥 <i>¡Buena suerte!</i>",
         'instr_text': "📖 <b>CÓMO EMPEZAR:</b>\n\n1️⃣ <b>Registro:</b> <a href='{url}'>HAZ CLIC AQUÍ</a>\n2️⃣ <b>Depósito:</b> Recarga.\n3️⃣ <b>Juego:</b> Ve a <b>Mines</b>.\n4️⃣ <b>Configuración:</b> Pon las trampas.\n5️⃣ <b>Acción:</b> Abre las celdas.\n6️⃣ <b>Seguro:</b> Dobla al perder.",
@@ -94,7 +94,7 @@ LANG = {
         'regged': "✅ <b>Sucesso!</b> Conta vinculada. 🚀",
         'choose_traps': "⚙️ <b>Configuração de risco</b>\n\nEscolha o número de armadilhas:",
         'btn_trap_1': "🟢 1 armadilha", 'btn_trap_3': "🟡 3 armadilhas", 'btn_trap_5': "🔴 5 armadilhas",
-        'btn_back': "⬅️ Voltar",
+        'btn_main': "⬅️ Menu Principal",
         'signal_title': "🔮 <b>Análise concluída!</b>\nArmadilhas: <b>{traps}</b>\n\n",
         'signal_hint': "\n🎯 <b>Células recomendadas:</b> <code>{cells}</code>\n\n🔥 <i>Boa sorte!</i>",
         'instr_text': "📖 <b>COMO COMEÇAR:</b>\n\n1️⃣ <b>Registro:</b> <a href='{url}'>CLIQUE AQUI</a>\n2️⃣ <b>Depósito:</b> Recarregue.\n3️⃣ <b>Jogo:</b> Vá para <b>Mines</b>.\n4️⃣ <b>Configuração:</b> Defina as armadilhas.\n5️⃣ <b>Ação:</b> Abra as células.\n6️⃣ <b>Seguro:</b> Dobre na perda.",
@@ -113,7 +113,7 @@ LANG = {
         'regged': "✅ <b>सफलता!</b> खाता लिंक हो गया। 🚀",
         'choose_traps': "⚙️ <b>जोखिम कॉन्फ़िगरेशन</b>\n\nजाल की संख्या चुनें:",
         'btn_trap_1': "🟢 1 जाल", 'btn_trap_3': "🟡 3 जाल", 'btn_trap_5': "🔴 5 जाल",
-        'btn_back': "⬅️ पीछे",
+        'btn_main': "⬅️ मुख्य मेनू",
         'signal_title': "🔮 <b>विश्लेषण पूरा!</b>\nजाल: <b>{traps}</b>\n\n",
         'signal_hint': "\n🎯 <b>अनुशंसित सेल:</b> <code>{cells}</code>\n\n🔥 <i>शुभकामनाएं!</i>",
         'instr_text': "📖 <b>कैसे शुरू करें:</b>\n\n1️⃣ <b>पंजीकरण:</b> <a href='{url}'>यहाँ क्लिक करें</a>\n2️⃣ <b>जमा:</b> टॉप अप करें।\n3️⃣ <b>गेम:</b> <b>Mines</b> पर जाएं।\n4️⃣ <b>सेटअप:</b> जाल सेट करें।\n5️⃣ <b>कार्रवाई:</b> सेल खोलें।\n6️⃣ <b>बीमा:</b> हार पर दोगुना करें।",
@@ -132,7 +132,7 @@ LANG = {
         'regged': "✅ <b>نجاح!</b> تم ربط الحساب. 🚀",
         'choose_traps': "⚙️ <b>تكوين المخاطر</b>\n\nاختر عدد الفخاخ:",
         'btn_trap_1': "🟢 فخ واحد", 'btn_trap_3': "🟡 3 فخاخ", 'btn_trap_5': "🔴 5 فخاخ",
-        'btn_back': "⬅️ رجوع",
+        'btn_main': "⬅️ القائمة الرئيسية",
         'signal_title': "🔮 <b>اكتمل التحليل!</b>\nالفخاخ: <b>{traps}</b>\n\n",
         'signal_hint': "\n🎯 <b>الخلايا الموصى بها:</b> <code>{cells}</code>\n\n🔥 <i>حظا سعيدا!</i>",
         'instr_text': "📖 <b>كيف تبدأ:</b>\n\n1️⃣ <b>التسجيل:</b> <a href='{url}'>انقر هنا</a>\n2️⃣ <b>إيداع:</b> اشحن رصيدك.\n3️⃣ <b>اللعبة:</b> انتقل إلى <b>Mines</b>.\n4️⃣ <b>الإعداد:</b> اضبط الفخاخ.\n5️⃣ <b>الإجراء:</b> افتح الخلايا.\n6️⃣ <b>التأمين:</b> ضاعف عند الخسارة.",
@@ -173,7 +173,6 @@ def get_user(uid: int):
         row = conn.execute("SELECT postback_id, language, referrer_id FROM user WHERE user_id = ?", (uid,)).fetchone()
         if row:
             lang = row[1] if row[1] in LANG else 'ru'
-            # Считаем билеты (друзья, которые зарегались)
             ref_count = conn.execute(
                 "SELECT COUNT(*) FROM user WHERE referrer_id = ? AND postback_id IS NOT NULL", 
                 (uid,)
@@ -221,14 +220,14 @@ def traps_menu(lang):
         InlineKeyboardButton(LANG[lang]['btn_trap_3'], callback_data="gen_trap_3"),
         InlineKeyboardButton(LANG[lang]['btn_trap_5'], callback_data="gen_trap_5")
     )
-    kb.add(InlineKeyboardButton(LANG[lang]['btn_back'], callback_data="main_menu"))
+    kb.add(InlineKeyboardButton(LANG[lang]['btn_main'], callback_data="main_menu"))
     return kb
 
 def sign_kb(lang):
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(
         InlineKeyboardButton(LANG[lang]['btn_sign'], callback_data="sign"),
-        InlineKeyboardButton(LANG[lang]['btn_back'], callback_data="main_menu"),
+        InlineKeyboardButton(LANG[lang]['btn_main'], callback_data="main_menu"),
     )
     return kb
 
@@ -306,7 +305,7 @@ async def cb_support(call: types.CallbackQuery):
     text = LANG[lang]['support_text'].format(admin_id=ADMIN_ID)
     
     kb = InlineKeyboardMarkup(row_width=1)
-    kb.add(InlineKeyboardButton(LANG[lang]['btn_back'], callback_data="main_menu"))
+    kb.add(InlineKeyboardButton(LANG[lang]['btn_main'], callback_data="main_menu"))
     
     await bot.edit_message_text(
         text=text,
@@ -329,7 +328,7 @@ async def cb_ref_menu(call: types.CallbackQuery):
     text = LANG[lang]['ref_title'].format(link=ref_link, count=user['ref_count'])
     
     kb = InlineKeyboardMarkup(row_width=1)
-    kb.add(InlineKeyboardButton(LANG[lang]['btn_back'], callback_data="main_menu"))
+    kb.add(InlineKeyboardButton(LANG[lang]['btn_main'], callback_data="main_menu"))
     
     await bot.edit_message_text(
         text=text,
@@ -403,14 +402,12 @@ async def cmd_admin(message: types.Message):
         return
     await bot.send_message(message.from_user.id, LANG[lang]['admin_panel'])
 
-# --- АДМИН КОМАНДА ДЛЯ ПРОСМОТРА ТОПА ---
 @dp.message_handler(commands=["top"])
 async def cmd_top(message: types.Message):
     if str(message.from_user.id) != str(ADMIN_ID):
         return
         
     with sqlite3.connect(DB_PATH) as conn:
-        # Получаем топ-10 юзеров по количеству рефералов
         rows = conn.execute("""
             SELECT u1.user_id, COUNT(u2.user_id) as ref_count
             FROM user u1
@@ -474,7 +471,6 @@ class PostbackHandler(http.server.BaseHTTPRequestHandler):
             user = get_user(uid)
             lang = user['lang'] if user else 'ru'
             
-            # Отправляем сообщение тому, кто зарегался
             text = LANG[lang]['regged']
             url = (
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -485,7 +481,6 @@ class PostbackHandler(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 log.error("telegram send failed: %s", e)
 
-            # Если есть реферер, уведомляем его о новом билете
             if user and user.get('referrer_id'):
                 ref_id = user['referrer_id']
                 ref_user = get_user(ref_id)

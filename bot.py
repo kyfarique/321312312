@@ -6,11 +6,12 @@ import sqlite3
 import threading
 import http.server
 import urllib.parse
+import datetime
 
 import requests
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonCommands
 
 # ============================================================
 #  НАСТРОЙКИ
@@ -18,6 +19,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ"
 ADMIN_ID  = "6109042131"
 
+DAILY_LIMIT = 5 # Сколько сигналов в день может запросить 1 человек
 WEB_PORT    = int(os.getenv("PORT", "5000"))
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
 
@@ -29,118 +31,130 @@ DB_PATH  = os.path.join(BASE_DIR, "DataBase.db")
 # --- СЛОВАРИ ПЕРЕВОДОВ ---
 LANG = {
     'ru': {
-        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nДобро пожаловать в элиту! Наш нейросетевой алгоритм анализирует игру и предсказывает безопасные ячейки с точностью <b>до 85%</b>.\n\n💎 Получи свой сигнал. Забери свой куш. 🚀",
+        'welcome': "🔥 <b>ДОСТУП К СЕКРЕТНОМУ АЛГОРИТМУ ПОЛУЧЕН</b> 🔥\n\nПриветствуем в <b>MINES AI PREDICTOR</b>!\n\n😤 Устал сливать депозиты на удачу? Хватит кормить казино. Пора забирать свое.\n\n🧠 Наша нейросеть сканирует паттерны игры <b>Mines</b> в 1win и вычисляет безопасные ячейки с точностью <b>до 85%</b>.\n\n🚀 <b>Начни зарабатывать прямо сейчас!</b> 👇",
         'btn_reg': "💳 Регистрация", 'btn_instr': "📖 Инструкция", 'btn_sign': "🔮 Выдать сигнал", 'btn_lang': "🌐 Язык", 'btn_ref': "👥 Конкурс и Рефералы", 'btn_support': "🆘 Поддержка",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Язык изменен на Русский 🇷🇺",
-        'need_reg': "⚠️ <b>Доступ заблокирован!</b>\n\nЧтобы разблокировать сигналы ИИ, вам нужно привязать аккаунт 1win.\n\n👇 Зарегистрируйтесь в 1 клик по кнопке ниже:\n\n<i>Или участвуйте в конкурсе по кнопке «👥 Конкурс и Рефералы»!</i>",
-        'regged': "✅ <b>Успешно!</b> Аккаунт привязан. Теперь вам доступны все сигналы нейросети. Нажмите «Выдать сигнал», чтобы начать! 🚀",
-        'choose_traps': "⚙️ <b>Настройка риска</b>\n\nВыберите количество ловушек для следующего раунда:",
+        'need_reg': "⚠️ <b>ДОСТУП ЗАБЛОКИРОВАН!</b>\n\nАлгоритм ИИ требует привязки аккаунта 1win.\n\n👇 Зарегистрируйся в 1 клик, чтобы открыть доступ:\n\n<i>Или участвуй в конкурсе по кнопке «👥 Конкурс и Рефералы»!</i>",
+        'regged': "✅ <b>УСПЕХ!</b> Аккаунт привязан к системе. Нейросеть активирована. Жми «Выдать сигнал»! 🚀",
+        'choose_traps': "⚙️ <b>Настройка риска</b>\n\nВыбери количество ловушек для следующего раунда:",
         'btn_trap_1': "🟢 1 ловушка", 'btn_trap_3': "🟡 3 ловушки", 'btn_trap_5': "🔴 5 ловушек",
         'btn_main': "⬅️ Главное меню",
         'signal_title': "🔮 <b>Анализ завершен!</b>\nКонфигурация: <b>{traps} ловушки</b>\n\n",
-        'signal_hint': "\n🎯 <b>Рекомендуемые ячейки:</b> <code>{cells}</code>\n\n🔥 <i>Удачи! Не забывайте удваивать ставку при проигрыше.</i>",
-        'instr_text': "📖 <b>КАК НАЧАТЬ ЗАРАБАТЫВАТЬ:</b>\n\n1️⃣ <b>Регистрация:</b> <a href='{url}'>КЛИКНИ СЮДА</a>\n2️⃣ <b>Депозит:</b> Пополните баланс.\n3️⃣ <b>Игра:</b> Перейдите в раздел <b>Mines</b>.\n4️⃣ <b>Настройка:</b> Выставьте ловушки по сигналу.\n5️⃣ <b>Действие:</b> Открывайте ячейки от ИИ.\n6️⃣ <b>Страховка:</b> При проигрыше удваивайте ставку.\n\n💸 <i>Профит гарантирован при строгом следовании!</i>",
+        'signal_hint': "\n🎯 <b>Рекомендуемые ячейки:</b> <code>{cells}</code>\n\n{left}🔥 <i>Удачи! Не забывай удваивать ставку при проигрыше.</i>",
+        'left_signals': "💡 <i>Осталось сигналов на сегодня: {left}</i>\n\n",
+        'limit_msg': "⚠️ <b>ДНЕВНОЙ ЛИМИТ ИСЧЕРПАН!</b>\n\nВы использовали все {limit} сигналов на сегодня. Нейросети нужно время для калибровки и анализа новых паттернов.\n\n👇 <b>Хотите больше сигналов?</b> Пригласите друга по кнопке «👥 Конкурс и Рефералы», чтобы получить бонусные попытки!",
+        'instr_text': "📖 <b>КАК НАЧАТЬ ЗАРАБАТЫВАТЬ:</b>\n\n1️⃣ <b>Регистрация:</b> <a href='{url}'>КЛИКНИ СЮДА</a>\n2️⃣ <b>Депозит:</b> Пополни баланс.\n3️⃣ <b>Игра:</b> Перейди в раздел <b>Mines</b>.\n4️⃣ <b>Настройка:</b> Выставь ловушки по сигналу.\n5️⃣ <b>Действие:</b> Открывай ячейки от ИИ.\n6️⃣ <b>Страховка:</b> При проигрыше удваивай ставку.\n\n💸 <i>Профит при строгом следовании алгоритму!</i>",
         'admin_panel': "⚙️ Админ панель. Команда /top - таблица лидеров.", 'not_admin': "❌ У вас нет прав администратора.",
-        'support_text': "🆘 <b>Служба поддержки</b>\n\nЕсли у вас возникли вопросы по работе бота, регистрации или выплатам, напишите нашему менеджеру:\n\n👉 <a href='tg://user?id={admin_id}'>Написать администратору</a>",
+        'support_text': "🆘 <b>Служба поддержки</b>\n\nЕсли у вас возникли вопросы по работе бота, регистрации или выплатам, напишите менеджеру:\n\n👉 <a href='tg://user?id={admin_id}'>Написать администратору</a>",
         'ref_title': "🏆 <b>КОНКУРС С ПРИЗОВЫМ ФОНДОМ</b> 🏆\n\nПриглашай друзей и зарабатывай билеты! <b>1 зарегистрированный друг = 1 билет.</b>\n\n🥇 <b>1 место:</b> $100\n🥈 <b>2 место:</b> $50\n🥉 <b>3 место:</b> $20\n\n📊 Твои билеты: <b>{count}</b>\n\n🔗 Твоя ссылка для приглашения:\n<code>{link}</code>",
-        'ref_notify': "🎉 По твоей ссылке зарегистрировался друг! Ты получил +1 билет. Всего билетов: <b>{count}</b>. Продолжай в том же духе!",
-        'ref_success': "🔥 <b>Ты пригласил 3 друзей!</b> Твой доступ к сигналам открыт навсегда. Но не останавливайся, ведь на кону денежные призы!"
+        'ref_notify': "🎉 По твоей ссылке зарегистрировался друг! Ты получил +1 билет. Всего билетов: <b>{count}</b>.",
+        'ref_success': "🔥 <b>Ты пригласил 3 друзей!</b> Твой доступ к сигналам открыт навсегда. Но не останавливайся, на кону денежные призы!"
     },
     'en': {
-        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nWelcome to the elite! Our neural network predicts safe cells with <b>up to 85% accuracy</b>.\n\n💎 Get your signal. Claim your prize. 🚀",
+        'welcome': "🔥 <b>SECRET ALGORITHM ACCESS GRANTED</b> 🔥\n\nWelcome to <b>MINES AI PREDICTOR</b>!\n\n😤 Tired of losing deposits? Stop feeding the casino. It's time to take yours.\n\n🧠 Our neural network scans Mines patterns and calculates safe cells with <b>up to 85% accuracy</b>.\n\n🚀 <b>Start earning right now!</b> 👇",
         'btn_reg': "💳 Register", 'btn_instr': "📖 Instruction", 'btn_sign': "🔮 Get Signal", 'btn_lang': "🌐 Language", 'btn_ref': "👥 Contest & Refs", 'btn_support': "🆘 Support",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Language changed to English 🇬🇧",
-        'need_reg': "⚠️ <b>Access Denied!</b>\n\nTo unlock AI signals, link your 1win account.\n\n👇 Register below:\n\n<i>Or participate in the contest using the “👥 Contest & Refs” button!</i>",
-        'regged': "✅ <b>Success!</b> Account linked. Click 'Get Signal' to start! 🚀",
+        'need_reg': "⚠️ <b>ACCESS BLOCKED!</b>\n\nAI algorithm requires a 1win account link.\n\n👇 Register in 1 click below to unlock:\n\n<i>Or participate in the contest using the “👥 Contest & Refs” button!</i>",
+        'regged': "✅ <b>SUCCESS!</b> Account linked. Neural network activated. Click 'Get Signal'! 🚀",
         'choose_traps': "⚙️ <b>Risk Configuration</b>\n\nChoose the number of traps:",
         'btn_trap_1': "🟢 1 trap", 'btn_trap_3': "🟡 3 traps", 'btn_trap_5': "🔴 5 traps",
         'btn_main': "⬅️ Main Menu",
         'signal_title': "🔮 <b>Analysis Complete!</b>\nConfiguration: <b>{traps} traps</b>\n\n",
-        'signal_hint': "\n🎯 <b>Recommended cells:</b> <code>{cells}</code>\n\n🔥 <i>Good luck!</i>",
-        'instr_text': "📖 <b>HOW TO START EARNING:</b>\n\n1️⃣ <b>Register:</b> <a href='{url}'>CLICK HERE</a>\n2️⃣ <b>Deposit:</b> Top up your balance.\n3️⃣ <b>Game:</b> Go to <b>Mines</b>.\n4️⃣ <b>Setup:</b> Set traps by signal.\n5️⃣ <b>Action:</b> Open cells from AI.\n6️⃣ <b>Insurance:</b> Double bet on loss.",
+        'signal_hint': "\n🎯 <b>Recommended cells:</b> <code>{cells}</code>\n\n{left}🔥 <i>Good luck! Double bet on loss.</i>",
+        'left_signals': "💡 <i>Signals left today: {left}</i>\n\n",
+        'limit_msg': "⚠️ <b>DAILY LIMIT REACHED!</b>\n\nYou have used all {limit} signals for today. The neural network needs time to calibrate.\n\n👇 <b>Want more?</b> Invite a friend via '👥 Contest & Refs' to get bonus attempts!",
+        'instr_text': "📖 <b>HOW TO START:</b>\n\n1️⃣ <b>Register:</b> <a href='{url}'>CLICK HERE</a>\n2️⃣ <b>Deposit:</b> Top up.\n3️⃣ <b>Game:</b> Go to <b>Mines</b>.\n4️⃣ <b>Setup:</b> Set traps by signal.\n5️⃣ <b>Action:</b> Open cells.\n6️⃣ <b>Insurance:</b> Double bet on loss.",
         'admin_panel': "⚙️ Admin panel. Command /top - leaderboard.", 'not_admin': "❌ You don't have admin rights.",
-        'support_text': "🆘 <b>Support</b>\n\nIf you have questions about the bot, registration, or payouts, contact our manager:\n\n👉 <a href='tg://user?id={admin_id}'>Message Admin</a>",
-        'ref_title': "🏆 <b>PRIZE POOL CONTEST</b> 🏆\n\nInvite friends and earn tickets! <b>1 registered friend = 1 ticket.</b>\n\n🥇 <b>1st place:</b> $100\n🥈 <b>2nd place:</b> $50\n🥉 <b>3rd place:</b> $20\n\n📊 Your tickets: <b>{count}</b>\n\n🔗 Your invite link:\n<code>{link}</code>",
-        'ref_notify': "🎉 A friend registered via your link! You got +1 ticket. Total tickets: <b>{count}</b>. Keep it up!",
-        'ref_success': "🔥 <b>You invited 3 friends!</b> Your access is now open forever. But don't stop, cash prizes are at stake!"
+        'support_text': "🆘 <b>Support</b>\n\nContact our manager:\n\n👉 <a href='tg://user?id={admin_id}'>Message Admin</a>",
+        'ref_title': "🏆 <b>PRIZE POOL CONTEST</b> 🏆\n\nInvite friends and earn tickets! <b>1 registered friend = 1 ticket.</b>\n\n🥇 <b>1st:</b> $100\n🥈 <b>2nd:</b> $50\n🥉 <b>3rd:</b> $20\n\n📊 Tickets: <b>{count}</b>\n\n🔗 Link:\n<code>{link}</code>",
+        'ref_notify': "🎉 Friend registered! +1 ticket. Total: <b>{count}</b>.",
+        'ref_success': "🔥 <b>3 friends invited!</b> Access is open forever. Don't stop, cash prizes await!"
     },
     'es': {
-        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\n¡Bienvenido! Predice celdas seguras con <b>hasta un 85% de precisión</b>.\n\n💎 Obtén tu señal. Reclama tu premio. 🚀",
+        'welcome': "🔥 <b>ACCESO AL ALGORITMO SECRETO</b> 🔥\n\n¡Bienvenido a <b>MINES AI PREDICTOR</b>!\n\n😤 ¿Cansado de perder? Deja de alimentar al casino.\n\n🧠 Nuestra red neuronal calcula celdas seguras con <b>hasta un 85% de precisión</b>.\n\n🚀 <b>¡Empieza a ganar ahora!</b> 👇",
         'btn_reg': "💳 Registrarse", 'btn_instr': "📖 Instrucción", 'btn_sign': "🔮 Obtener señal", 'btn_lang': "🌐 Idioma", 'btn_ref': "👥 Concurso y Refs", 'btn_support': "🆘 Soporte",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Idioma cambiado a Español 🇪🇸",
-        'need_reg': "⚠️ <b>¡Acceso Denegado!</b>\n\nVincula tu cuenta de 1win.\n\n👇 Regístrate abajo:\n\n<i>¡O participa en el concurso usando el botón “👥 Concurso y Refs”!</i>",
-        'regged': "✅ <b>¡Éxito!</b> Cuenta vinculada. 🚀",
-        'choose_traps': "⚙️ <b>Configuración de riesgo</b>\n\nElige el número de trampas:",
+        'need_reg': "⚠️ <b>¡ACCESO BLOQUEADO!</b>\n\nVincula tu cuenta de 1win.\n\n👇 Regístrate abajo:",
+        'regged': "✅ <b>¡ÉXITO!</b> Cuenta vinculada. 🚀",
+        'choose_traps': "⚙️ <b>Configuración de riesgo</b>\n\nElige trampas:",
         'btn_trap_1': "🟢 1 trampa", 'btn_trap_3': "🟡 3 trampas", 'btn_trap_5': "🔴 5 trampas",
         'btn_main': "⬅️ Menú Principal",
         'signal_title': "🔮 <b>¡Análisis completado!</b>\nTrampas: <b>{traps}</b>\n\n",
-        'signal_hint': "\n🎯 <b>Celdas recomendadas:</b> <code>{cells}</code>\n\n🔥 <i>¡Buena suerte!</i>",
+        'signal_hint': "\n🎯 <b>Celdas recomendadas:</b> <code>{cells}</code>\n\n{left}🔥 <i>¡Buena suerte!</i>",
+        'left_signals': "💡 <i>Señales restantes hoy: {left}</i>\n\n",
+        'limit_msg': "⚠️ <b>¡LÍMITE DIARIO ALCANZADO!</b>\n\nHas usado las {limit} señales de hoy. ¡Invita a un amigo para obtener intentos extra!",
         'instr_text': "📖 <b>CÓMO EMPEZAR:</b>\n\n1️⃣ <b>Registro:</b> <a href='{url}'>HAZ CLIC AQUÍ</a>\n2️⃣ <b>Depósito:</b> Recarga.\n3️⃣ <b>Juego:</b> Ve a <b>Mines</b>.\n4️⃣ <b>Configuración:</b> Pon las trampas.\n5️⃣ <b>Acción:</b> Abre las celdas.\n6️⃣ <b>Seguro:</b> Dobla al perder.",
         'admin_panel': "⚙️ Panel de admin. Comando /top.", 'not_admin': "❌ No eres admin.",
-        'support_text': "🆘 <b>Soporte</b>\n\nSi tienes preguntas, contacta a nuestro gerente:\n\n👉 <a href='tg://user?id={admin_id}'>Mensaje al Admin</a>",
-        'ref_title': "🏆 <b>CONCURSO CON PREMIOS</b> 🏆\n\n¡Invita amigos y gana boletos! <b>1 amigo = 1 boleto.</b>\n\n🥇 <b>1er lugar:</b> $100\n🥈 <b>2do lugar:</b> $50\n🥉 <b>3er lugar:</b> $20\n\n📊 Tus boletos: <b>{count}</b>\n\n🔗 Tu enlace:\n<code>{link}</code>",
+        'support_text': "🆘 <b>Soporte</b>\n\n👉 <a href='tg://user?id={admin_id}'>Mensaje al Admin</a>",
+        'ref_title': "🏆 <b>CONCURSO CON PREMIOS</b> 🏆\n\n¡Invita amigos y gana boletos! <b>1 amigo = 1 boleto.</b>\n\n🥇 <b>1er lugar:</b> $100\n🥈 <b>2do:</b> $50\n🥉 <b>3er:</b> $20\n\n📊 Boletos: <b>{count}</b>\n\n🔗 Enlace:\n<code>{link}</code>",
         'ref_notify': "🎉 ¡Un amigo se registró! +1 boleto. Total: <b>{count}</b>.",
-        'ref_success': "🔥 <b>¡Invitaste a 3 amigos!</b> Tu acceso está abierto para siempre. ¡Pero no te detengas, hay premios en efectivo!"
+        'ref_success': "🔥 <b>¡Invitaste a 3 amigos!</b> Acceso abierto para siempre."
     },
     'pt': {
-        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nBem-vindo! Preveja células seguras com <b>até 85% de precisão</b>.\n\n💎 Obtenha seu sinal. Reivindique seu prêmio. 🚀",
+        'welcome': "🔥 <b>ACESSO AO ALGORITMO SECRETO</b> 🔥\n\nBem-vindo ao <b>MINES AI PREDICTOR</b>!\n\n😤 Cansado de perder? Pare de alimentar o cassino.\n\n🧠 Nossa rede neural calcula células seguras com <b>até 85% de precisão</b>.\n\n🚀 <b>Comece a ganhar agora!</b> 👇",
         'btn_reg': "💳 Registre-se", 'btn_instr': "📖 Instrução", 'btn_sign': "🔮 Obter sinal", 'btn_lang': "🌐 Idioma", 'btn_ref': "👥 Concurso e Refs", 'btn_support': "🆘 Suporte",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Idioma alterado para Português 🇵🇹",
-        'need_reg': "⚠️ <b>Acesso Negado!</b>\n\nVincule sua conta 1win.\n\n👇 Registre-se abaixo:\n\n<i>Ou participe do concurso usando o botão “👥 Concurso e Refs”!</i>",
-        'regged': "✅ <b>Sucesso!</b> Conta vinculada. 🚀",
-        'choose_traps': "⚙️ <b>Configuração de risco</b>\n\nEscolha o número de armadilhas:",
+        'need_reg': "⚠️ <b>ACESSO BLOQUEADO!</b>\n\nVincule sua conta 1win.\n\n👇 Registre-se abaixo:",
+        'regged': "✅ <b>SUCESSO!</b> Conta vinculada. 🚀",
+        'choose_traps': "⚙️ <b>Configuração de risco</b>\n\nEscolha armadilhas:",
         'btn_trap_1': "🟢 1 armadilha", 'btn_trap_3': "🟡 3 armadilhas", 'btn_trap_5': "🔴 5 armadilhas",
         'btn_main': "⬅️ Menu Principal",
         'signal_title': "🔮 <b>Análise concluída!</b>\nArmadilhas: <b>{traps}</b>\n\n",
-        'signal_hint': "\n🎯 <b>Células recomendadas:</b> <code>{cells}</code>\n\n🔥 <i>Boa sorte!</i>",
+        'signal_hint': "\n🎯 <b>Células recomendadas:</b> <code>{cells}</code>\n\n{left}🔥 <i>Boa sorte!</i>",
+        'left_signals': "💡 <i>Sinais restantes hoje: {left}</i>\n\n",
+        'limit_msg': "⚠️ <b>LIMITE DIÁRIO ATINGIDO!</b>\n\nVocê usou todos os {limit} sinais de hoje. Convide um amigo para tentativas extras!",
         'instr_text': "📖 <b>COMO COMEÇAR:</b>\n\n1️⃣ <b>Registro:</b> <a href='{url}'>CLIQUE AQUI</a>\n2️⃣ <b>Depósito:</b> Recarregue.\n3️⃣ <b>Jogo:</b> Vá para <b>Mines</b>.\n4️⃣ <b>Configuração:</b> Defina as armadilhas.\n5️⃣ <b>Ação:</b> Abra as células.\n6️⃣ <b>Seguro:</b> Dobre na perda.",
         'admin_panel': "⚙️ Painel de admin. Comando /top.", 'not_admin': "❌ Você não é admin.",
-        'support_text': "🆘 <b>Suporte</b>\n\nSe tiver dúvidas, entre em contato:\n\n👉 <a href='tg://user?id={admin_id}'>Mensagem para o Admin</a>",
-        'ref_title': "🏆 <b>CONCURSO COM PRÊMIOS</b> 🏆\n\nConvide amigos e ganhe bilhetes! <b>1 amigo = 1 bilhete.</b>\n\n🥇 <b>1º lugar:</b> $100\n🥈 <b>2º lugar:</b> $50\n🥉 <b>3º lugar:</b> $20\n\n📊 Seus bilhetes: <b>{count}</b>\n\n🔗 Seu link:\n<code>{link}</code>",
+        'support_text': "🆘 <b>Suporte</b>\n\n👉 <a href='tg://user?id={admin_id}'>Mensagem para o Admin</a>",
+        'ref_title': "🏆 <b>CONCURSO COM PRÊMIOS</b> 🏆\n\nConvide amigos e ganhe bilhetes! <b>1 amigo = 1 bilhete.</b>\n\n🥇 <b>1º:</b> $100\n🥈 <b>2º:</b> $50\n🥉 <b>3º:</b> $20\n\n📊 Bilhetes: <b>{count}</b>\n\n🔗 Link:\n<code>{link}</code>",
         'ref_notify': "🎉 Um amigo se registrou! +1 bilhete. Total: <b>{count}</b>.",
-        'ref_success': "🔥 <b>Você convidou 3 amigos!</b> Seu acesso está aberto para sempre. Mas não pare, há prêmios em dinheiro!"
+        'ref_success': "🔥 <b>Você convidou 3 amigos!</b> Acesso aberto para sempre."
     },
     'hi': {
-        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nस्वागत है! <b>85% तक सटीकता</b> के साथ सुरक्षित सेल।\n\n💎 अपना सिग्नल प्राप्त करें। 🚀",
-        'btn_reg': "💳 पंजीकरण करें", 'btn_instr': "📖 निर्देश", 'btn_sign': "🔮 सिग्नल प्राप्त करें", 'btn_lang': "🌐 भाषा", 'btn_ref': "👥 प्रतियोगिता और रेफरल", 'btn_support': "🆘 सहायता",
+        'welcome': "🔥 <b>गुप्त एल्गोरिथम तक पहुंच</b> 🔥\n\n<b>MINES AI PREDICTOR</b> में आपका स्वागत है!\n\n😤 खोने से थक गए? कैसीनो को खिलाना बंद करें।\n\n🧠 हमारा न्यूरल नेटवर्क <b>85% तक सटीकता</b> के साथ सुरक्षित सेल की गणना करता है।\n\n🚀 <b>अभी कमाना शुरू करें!</b> 👇",
+        'btn_reg': "💳 पंजीकरण", 'btn_instr': "📖 निर्देश", 'btn_sign': "🔮 सिग्नल प्राप्त करें", 'btn_lang': "🌐 भाषा", 'btn_ref': "👥 प्रतियोगिता और रेफरल", 'btn_support': "🆘 सहायता",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "भाषा हिंदी में बदल गई 🇮🇳",
-        'need_reg': "⚠️ <b>पहुंच अस्वीकृत!</b>\n\n1win खाता लिंक करें।\n\n👇 नीचे पंजीकरण करें:\n\n<i>या “👥 प्रतियोगिता और रेफरल” बटन का उपयोग करके प्रतियोगिता में भाग लें!</i>",
+        'need_reg': "⚠️ <b>पहुंच अवरुद्ध!</b>\n\n1win खाता लिंक करें।\n\n👇 नीचे पंजीकरण करें:",
         'regged': "✅ <b>सफलता!</b> खाता लिंक हो गया। 🚀",
-        'choose_traps': "⚙️ <b>जोखिम कॉन्फ़िगरेशन</b>\n\nजाल की संख्या चुनें:",
+        'choose_traps': "⚙️ <b>जोखिम कॉन्फ़िगरेशन</b>\n\nजाल चुनें:",
         'btn_trap_1': "🟢 1 जाल", 'btn_trap_3': "🟡 3 जाल", 'btn_trap_5': "🔴 5 जाल",
         'btn_main': "⬅️ मुख्य मेनू",
         'signal_title': "🔮 <b>विश्लेषण पूरा!</b>\nजाल: <b>{traps}</b>\n\n",
-        'signal_hint': "\n🎯 <b>अनुशंसित सेल:</b> <code>{cells}</code>\n\n🔥 <i>शुभकामनाएं!</i>",
+        'signal_hint': "\n🎯 <b>अनुशंसित सेल:</b> <code>{cells}</code>\n\n{left}🔥 <i>शुभकामनाएं!</i>",
+        'left_signals': "💡 <i>आज बचे सिग्नल: {left}</i>\n\n",
+        'limit_msg': "⚠️ <b>दैनिक सीमा समाप्त!</b>\n\nआपने आज के सभी {limit} सिग्नल का उपयोग कर लिया है। बोनस के लिए दोस्त को आमंत्रित करें!",
         'instr_text': "📖 <b>कैसे शुरू करें:</b>\n\n1️⃣ <b>पंजीकरण:</b> <a href='{url}'>यहाँ क्लिक करें</a>\n2️⃣ <b>जमा:</b> टॉप अप करें।\n3️⃣ <b>गेम:</b> <b>Mines</b> पर जाएं।\n4️⃣ <b>सेटअप:</b> जाल सेट करें।\n5️⃣ <b>कार्रवाई:</b> सेल खोलें।\n6️⃣ <b>बीमा:</b> हार पर दोगुना करें।",
         'admin_panel': "⚙️ एडमिन पैनल। कमांड /top।", 'not_admin': "❌ आप एडमिन नहीं हैं।",
-        'support_text': "🆘 <b>सहायता</b>\n\nयदि कोई प्रश्न है, तो हमारे प्रबंधक से संपर्क करें:\n\n👉 <a href='tg://user?id={admin_id}'>एडमिन को संदेश भेजें</a>",
-        'ref_title': "🏆 <b>पुरस्कार प्रतियोगिता</b> 🏆\n\nदोस्तों को आमंत्रित करें और टिकट कमाएं! <b>1 दोस्त = 1 टिकट।</b>\n\n🥇 <b>प्रथम स्थान:</b> $100\n🥈 <b>द्वितीय स्थान:</b> $50\n🥉 <b>तृतीय स्थान:</b> $20\n\n📊 आपके टिकट: <b>{count}</b>\n\n🔗 आपका लिंक:\n<code>{link}</code>",
+        'support_text': "🆘 <b>सहायता</b>\n\n👉 <a href='tg://user?id={admin_id}'>एडमिन को संदेश भेजें</a>",
+        'ref_title': "🏆 <b>पुरस्कार प्रतियोगिता</b> 🏆\n\nदोस्तों को आमंत्रित करें! <b>1 दोस्त = 1 टिकट।</b>\n\n🥇 <b>1st:</b> $100\n🥈 <b>2nd:</b> $50\n🥉 <b>3rd:</b> $20\n\n📊 टिकट: <b>{count}</b>\n\n🔗 लिंक:\n<code>{link}</code>",
         'ref_notify': "🎉 एक दोस्त पंजीकृत हुआ! +1 टिकट। कुल: <b>{count}</b>।",
-        'ref_success': "🔥 <b>आपने 3 दोस्तों को आमंत्रित किया!</b> पहुंच हमेशा के लिए खुली है। लेकिन रुकें नहीं, नकद पुरस्कार दांव पर हैं!"
+        'ref_success': "🔥 <b>आपने 3 दोस्तों को आमंत्रित किया!</b> पहुंच हमेशा के लिए खुली है।"
     },
     'ar': {
-        'welcome': "🤖 <b>MINES AI PREDICTOR</b> 🤖\n\nمرحبًا! توقع الخلايا الآمنة بدقة <b>تصل إلى 85٪</b>.\n\n💎 احصل على إشارتك. 🚀",
+        'welcome': "🔥 <b>تم منح الوصول إلى الخوارزمية السرية</b> 🔥\n\nمرحبًا بك في <b>MINES AI PREDICTOR</b>!\n\n😤 سئمت من الخسارة؟ توقف عن إطعام الكازينو.\n\n🧠 شبكتنا العصبية تحسب الخلايا الآمنة بدقة <b>تصل إلى 85٪</b>.\n\n🚀 <b>ابدأ الكسب الآن!</b> 👇",
         'btn_reg': "💳 التسجيل", 'btn_instr': "📖 تعليمات", 'btn_sign': "🔮 الحصول على إشارة", 'btn_lang': "🌐 اللغة", 'btn_ref': "👥 المسابقة والإحالات", 'btn_support': "🆘 الدعم",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "تم تغيير اللغة إلى العربية 🇸🇦",
-        'need_reg': "⚠️ <b>تم رفض الوصول!</b>\n\nاربط حسابك في 1win.\n\n👇 سجل أدناه:\n\n<i>أو شارك في المسابقة باستخدام زر “👥 المسابقة والإحالات”!</i>",
+        'need_reg': "⚠️ <b>تم حظر الوصول!</b>\n\nاربط حسابك في 1win.\n\n👇 سجل أدناه:",
         'regged': "✅ <b>نجاح!</b> تم ربط الحساب. 🚀",
-        'choose_traps': "⚙️ <b>تكوين المخاطر</b>\n\nاختر عدد الفخاخ:",
+        'choose_traps': "⚙️ <b>تكوين المخاطر</b>\n\nاختر الفخاخ:",
         'btn_trap_1': "🟢 فخ واحد", 'btn_trap_3': "🟡 3 فخاخ", 'btn_trap_5': "🔴 5 فخاخ",
         'btn_main': "⬅️ القائمة الرئيسية",
         'signal_title': "🔮 <b>اكتمل التحليل!</b>\nالفخاخ: <b>{traps}</b>\n\n",
-        'signal_hint': "\n🎯 <b>الخلايا الموصى بها:</b> <code>{cells}</code>\n\n🔥 <i>حظا سعيدا!</i>",
+        'signal_hint': "\n🎯 <b>الخلايا الموصى بها:</b> <code>{cells}</code>\n\n{left}🔥 <i>حظا سعيدا!</i>",
+        'left_signals': "💡 <i>الإشارات المتبقية اليوم: {left}</i>\n\n",
+        'limit_msg': "⚠️ <b>تم الوصول إلى الحد اليومي!</b>\n\nلقد استخدمت جميع الإشارات الـ {limit} لهذا اليوم. ادعو صديقًا للحصول على محاولات إضافية!",
         'instr_text': "📖 <b>كيف تبدأ:</b>\n\n1️⃣ <b>التسجيل:</b> <a href='{url}'>انقر هنا</a>\n2️⃣ <b>إيداع:</b> اشحن رصيدك.\n3️⃣ <b>اللعبة:</b> انتقل إلى <b>Mines</b>.\n4️⃣ <b>الإعداد:</b> اضبط الفخاخ.\n5️⃣ <b>الإجراء:</b> افتح الخلايا.\n6️⃣ <b>التأمين:</b> ضاعف عند الخسارة.",
         'admin_panel': "⚙️ لوحة المسؤول. الأمر /top.", 'not_admin': "❌ ليس لديك حقوق المسؤول.",
-        'support_text': "🆘 <b>الدعم</b>\n\nإذا كان لديك أي أسئلة، اتصل بمديرنا:\n\n👉 <a href='tg://user?id={admin_id}'>مراسلة المسؤول</a>",
-        'ref_title': "🏆 <b>مسابقة جوائز</b> 🏆\n\nادعو الأصدقاء واكسب تذاكر! <b>صديق واحد = تذكرة واحدة.</b>\n\n🥇 <b>المركز الأول:</b> $100\n🥈 <b>المركز الثاني:</b> $50\n🥉 <b>المركز الثالث:</b> $20\n\n📊 تذاكرك: <b>{count}</b>\n\n🔗 رابطك:\n<code>{link}</code>",
-        'ref_notify': "🎉 سجل صديق عبر رابطك! +1 تذكرة. الإجمالي: <b>{count}</b>.",
-        'ref_success': "🔥 <b>لقد دعوت 3 أصدقاء!</b> وصولك مفتوح للأبد. لكن لا تتوقف، الجوائز النقدية على المحك!"
+        'support_text': "🆘 <b>الدعم</b>\n\n👉 <a href='tg://user?id={admin_id}'>مراسلة المسؤول</a>",
+        'ref_title': "🏆 <b>مسابقة جوائز</b> 🏆\n\nادعو الأصدقاء! <b>صديق = تذكرة.</b>\n\n🥇 <b>1:</b> $100\n🥈 <b>2:</b> $50\n🥉 <b>3:</b> $20\n\n📊 تذاكرك: <b>{count}</b>\n\n🔗 رابطك:\n<code>{link}</code>",
+        'ref_notify': "🎉 سجل صديق! +1 تذكرة. الإجمالي: <b>{count}</b>.",
+        'ref_success': "🔥 <b>لقد دعوت 3 أصدقاء!</b> وصولك مفتوح للأبد."
     }
 }
 
@@ -155,29 +169,47 @@ def init_db():
                 user_id     INTEGER PRIMARY KEY,
                 postback_id TEXT,
                 language    TEXT DEFAULT 'ru',
-                referrer_id INTEGER
+                referrer_id INTEGER,
+                daily_signals INTEGER DEFAULT 0,
+                last_signal_date TEXT
             )
         """)
         conn.commit()
-        try:
-            conn.execute("ALTER TABLE user ADD COLUMN language TEXT DEFAULT 'ru'")
-        except sqlite3.OperationalError:
-            pass
-        try:
-            conn.execute("ALTER TABLE user ADD COLUMN referrer_id INTEGER")
-        except sqlite3.OperationalError:
-            pass
+        
+        # Миграции для старых баз данных
+        columns = [
+            ("language", "TEXT DEFAULT 'ru'"),
+            ("referrer_id", "INTEGER"),
+            ("daily_signals", "INTEGER DEFAULT 0"),
+            ("last_signal_date", "TEXT")
+        ]
+        for col, typ in columns:
+            try:
+                conn.execute(f"ALTER TABLE user ADD COLUMN {col} {typ}")
+            except sqlite3.OperationalError:
+                pass
 
 def get_user(uid: int):
     with sqlite3.connect(DB_PATH) as conn:
-        row = conn.execute("SELECT postback_id, language, referrer_id FROM user WHERE user_id = ?", (uid,)).fetchone()
+        row = conn.execute("""
+            SELECT postback_id, language, referrer_id, daily_signals, last_signal_date 
+            FROM user WHERE user_id = ?
+        """, (uid,)).fetchone()
+        
         if row:
             lang = row[1] if row[1] in LANG else 'ru'
             ref_count = conn.execute(
                 "SELECT COUNT(*) FROM user WHERE referrer_id = ? AND postback_id IS NOT NULL", 
                 (uid,)
             ).fetchone()[0]
-            return {"postback_id": row[0], "lang": lang, "referrer_id": row[2], "ref_count": ref_count}
+            return {
+                "postback_id": row[0], 
+                "lang": lang, 
+                "referrer_id": row[2], 
+                "ref_count": ref_count,
+                "daily_signals": row[3] or 0,
+                "last_signal_date": row[4]
+            }
     return None
 
 # ---------- Bot ----------
@@ -231,7 +263,7 @@ def sign_kb(lang):
     )
     return kb
 
-def generate_mines_grid(lang, traps=3):
+def generate_mines_grid(lang, traps=3, signals_left=0):
     cells = ['⭐'] * (25 - traps) + ['💣'] * traps
     random.shuffle(cells)
     
@@ -245,7 +277,13 @@ def generate_mines_grid(lang, traps=3):
     recommended = ", ".join(safe_cells[:4])
     
     title = LANG[lang]['signal_title'].format(traps=traps)
-    return title + f"<code>{grid_text}</code>" + LANG[lang]['signal_hint'].format(cells=recommended)
+    
+    if signals_left > 0:
+        left_text = LANG[lang]['left_signals'].format(left=signals_left)
+    else:
+        left_text = ""
+        
+    return title + f"<code>{grid_text}</code>" + LANG[lang]['signal_hint'].format(cells=recommended, left=left_text)
 
 # ---------- Handlers ----------
 @dp.message_handler(commands=["start"])
@@ -303,17 +341,9 @@ async def cb_support(call: types.CallbackQuery):
     user = get_user(call.from_user.id)
     lang = user['lang'] if user else 'ru'
     text = LANG[lang]['support_text'].format(admin_id=ADMIN_ID)
-    
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(InlineKeyboardButton(LANG[lang]['btn_main'], callback_data="main_menu"))
-    
-    await bot.edit_message_text(
-        text=text,
-        chat_id=call.from_user.id,
-        message_id=call.message.message_id,
-        reply_markup=kb,
-        disable_web_page_preview=True
-    )
+    await bot.edit_message_text(text=text, chat_id=call.from_user.id, message_id=call.message.message_id, reply_markup=kb, disable_web_page_preview=True)
     await bot.answer_callback_query(call.id)
 
 @dp.callback_query_handler(text="ref_menu")
@@ -321,22 +351,12 @@ async def cb_ref_menu(call: types.CallbackQuery):
     uid = call.from_user.id
     user = get_user(uid)
     lang = user['lang'] if user else 'ru'
-    
     bot_info = await bot.get_me()
     ref_link = f"https://t.me/{bot_info.username}?start={uid}"
-    
     text = LANG[lang]['ref_title'].format(link=ref_link, count=user['ref_count'])
-    
     kb = InlineKeyboardMarkup(row_width=1)
     kb.add(InlineKeyboardButton(LANG[lang]['btn_main'], callback_data="main_menu"))
-    
-    await bot.edit_message_text(
-        text=text,
-        chat_id=uid,
-        message_id=call.message.message_id,
-        reply_markup=kb,
-        disable_web_page_preview=True
-    )
+    await bot.edit_message_text(text=text, chat_id=uid, message_id=call.message.message_id, reply_markup=kb, disable_web_page_preview=True)
     await bot.answer_callback_query(call.id)
 
 @dp.callback_query_handler(text="instr")
@@ -359,8 +379,8 @@ async def cb_sign(call: types.CallbackQuery):
     uid = call.from_user.id
     user = get_user(uid)
     
+    # Проверка доступа
     has_access = user and (user['postback_id'] or user['ref_count'] >= 3)
-    
     if not has_access:
         lang = user['lang'] if user else 'ru'
         await bot.send_message(uid, LANG[lang]['need_reg'], reply_markup=reg_kb(uid, lang))
@@ -382,8 +402,34 @@ async def cb_gen_trap(call: types.CallbackQuery):
     user = get_user(uid)
     lang = user['lang'] if user else 'ru'
     
+    # --- ПРОВЕРКА ДНЕВНОГО ЛИМИТА ---
+    today = datetime.date.today().isoformat()
+    daily_signals = user['daily_signals']
+    
+    # Если дата сменилась, сбрасываем счетчик
+    if user['last_signal_date'] != today:
+        daily_signals = 0
+        
+    if daily_signals >= DAILY_LIMIT:
+        # Лимит исчерпан
+        await bot.answer_callback_query(call.id, "⚠️ Лимит на сегодня исчерпан!", show_alert=True)
+        await bot.send_message(uid, LANG[lang]['limit_msg'].format(limit=DAILY_LIMIT))
+        return
+        
+    # Увеличиваем счетчик и обновляем дату
+    daily_signals += 1
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            "UPDATE user SET daily_signals = ?, last_signal_date = ? WHERE user_id = ?", 
+            (daily_signals, today, uid)
+        )
+        conn.commit()
+    
+    signals_left = DAILY_LIMIT - daily_signals
+    
+    # Генерация сигнала
     traps = int(call.data.split("_")[-1])
-    signal_text = generate_mines_grid(lang, traps)
+    signal_text = generate_mines_grid(lang, traps, signals_left)
     
     await bot.edit_message_text(
         text=signal_text,
@@ -406,7 +452,6 @@ async def cmd_admin(message: types.Message):
 async def cmd_top(message: types.Message):
     if str(message.from_user.id) != str(ADMIN_ID):
         return
-        
     with sqlite3.connect(DB_PATH) as conn:
         rows = conn.execute("""
             SELECT u1.user_id, COUNT(u2.user_id) as ref_count
@@ -520,8 +565,12 @@ def run_web():
     server.serve_forever()
 
 # ---------- Entry ----------
+async def on_startup(dp):
+    # Устанавливаем красивую кнопку "Меню" слева внизу
+    await bot.set_chat_menu_button(menu_button=MenuButtonCommands(text="Start"))
+
 if __name__ == "__main__":
     init_db()
     threading.Thread(target=run_web, daemon=True).start()
     log.info("Bot starting...")
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

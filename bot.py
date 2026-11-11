@@ -23,7 +23,7 @@ BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" # Токен Mines-
 ADMIN_ID  = "6109042131"
 WEB_PORT  = int(os.getenv("PORT", "5000"))
 
-# Ссылка для Mines (замени на свою, если нужно)
+# Ссылка для Mines (замени на свою партнерскую, если нужно)
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
 
 # ============================================================
@@ -33,7 +33,7 @@ DB_PATH  = os.path.join(BASE_DIR, "DataBase.db")
 LANG = {
     'ru': {
         'welcome': "💣 <b>MINES AI PREDICTOR</b> 💣\n\nПриветствуем! Наша нейросеть сканирует алгоритмы игры <b>Mines</b> в 1win и находит безопасные ячейки с точностью до 90%.",
-        'btn_reg': "💳 Регистрация", 'btn_instr': "📖 Инструкция", 'btn_sign': "💣 Выдать сигнал", 'btn_lang': "🌐 Язык", 'btn_ref': "👥 Конкурс", 'btn_support': "🆘 Поддержка",
+        'btn_reg': "💳 Регистрация", 'btn_instr': "📖 Инструкция", 'btn_sign': "💣 Выдать сигнал", 'btn_lang': "🌐 Язык", 'btn_ref': "👥 Конкурс и Рефералы", 'btn_support': "🆘 Поддержка",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Язык изменен на Русский 🇷🇺",
         'need_reg': "⚠️ <b>ДОСТУП ЗАБЛОКИРОВАН!</b>\n\nАлгоритм ИИ требует привязки аккаунта 1win.\n\n👇 Зарегистрируйся в 1 клик:",
@@ -44,9 +44,9 @@ LANG = {
         'signal_title': "💣 <b>Анализ завершен!</b>\nЛовушек: <b>{traps}</b>\n\n",
         'signal_hint': "\n🎯 <b>Рекомендуемые ячейки:</b> <code>{cells}</code>\n\n{left}🔥 <i>Удачи! Не забывай про банкролл.</i>",
         'left_signals': "💡 <i>Осталось сигналов: {left}</i>\n\n",
-        'limit_msg': "⚠️ <b>ЛИМИТ ИСЧЕРПАН!</b>\n\n👇 Пригласите друга по кнопке «👥 Конкурс»!",
+        'limit_msg': "⚠️ <b>ЛИМИТ ИСЧЕРПАН!</b>\n\n👇 Пригласите друга по кнопке «👥 Конкурс и Рефералы»!",
         'instr_text': "📖 <b>КАК ИГРАТЬ:</b>\n\n1️⃣ <b>Регистрация:</b> <a href='{url}'>КЛИКНИ СЮДА</a>\n2️⃣ <b>Депозит.</b>\n3️⃣ <b>Игра:</b> Раздел <b>Mines</b>.\n4️⃣ <b>Настройка:</b> Выстави ловушки по сигналу.",
-        'admin_panel': "⚙️ <b>АДМИН ПАНЕЛЬ</b>\n\n👑 Статус: <b>GOD MODE (Безлимит)</b>\n📊 Управление: /top - лидеры, /broadcast - рассылка",
+        'admin_panel': "⚙️ <b>АДМИН ПАНЕЛЬ</b>\n\n👑 Статус: <b>GOD MODE (Безлимит)</b>\n📊 Управление: /top - таблица лидеров",
         'not_admin': "❌ Вы не админ.",
         'support_text': "🆘 <b>Поддержка</b>\n\n👉 <a href='tg://user?id={admin_id}'>Написать админу</a>",
         'ref_title': "🏆 <b>КОНКУРС</b> 🏆\n\n1 друг = 1 билет.\n🥇 $100\n🥈 $50\n🥉 $20\n\n📊 Твои билеты: <b>{count}</b>\n\n🔗 Ссылка:\n<code>{link}</code>",
@@ -55,7 +55,7 @@ LANG = {
     },
     'en': {
         'welcome': "💣 <b>MINES AI PREDICTOR</b> 💣\n\nWelcome! Our neural network scans <b>Mines</b> algorithms in 1win and finds safe cells with up to 90% accuracy.",
-        'btn_reg': "💳 Register", 'btn_instr': "📖 Instruction", 'btn_sign': "💣 Get Signal", 'btn_lang': "🌐 Language", 'btn_ref': "👥 Contest", 'btn_support': "🆘 Support",
+        'btn_reg': "💳 Register", 'btn_instr': "📖 Instruction", 'btn_sign': "💣 Get Signal", 'btn_lang': "🌐 Language", 'btn_ref': "👥 Contest & Refs", 'btn_support': "🆘 Support",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Language changed to English 🇬🇧",
         'need_reg': "⚠️ <b>ACCESS BLOCKED!</b>\n\nRegister below to unlock:",
@@ -66,9 +66,9 @@ LANG = {
         'signal_title': "💣 <b>Analysis Complete!</b>\nTraps: <b>{traps}</b>\n\n",
         'signal_hint': "\n🎯 <b>Recommended cells:</b> <code>{cells}</code>\n\n{left}🔥 <i>Good luck!</i>",
         'left_signals': "💡 <i>Signals left: {left}</i>\n\n",
-        'limit_msg': "⚠️ <b>LIMIT REACHED!</b>\n\nInvite a friend!",
+        'limit_msg': "⚠️ <b>LIMIT REACHED!</b>\n\nInvite a friend via '👥 Contest & Refs'!",
         'instr_text': "📖 <b>HOW TO START:</b>\n\n1️⃣ <b>Register:</b> <a href='{url}'>CLICK HERE</a>\n2️⃣ <b>Deposit.</b>\n3️⃣ <b>Game:</b> <b>Mines</b>.",
-        'admin_panel': "⚙️ <b>ADMIN PANEL</b>\n\n👑 Status: <b>GOD MODE (Unlimited)</b>\n📊 Commands: /top, /broadcast",
+        'admin_panel': "⚙️ <b>ADMIN PANEL</b>\n\n👑 Status: <b>GOD MODE (Unlimited)</b>\n📊 Commands: /top - leaderboard",
         'not_admin': "❌ No rights.",
         'support_text': "🆘 <b>Support</b>\n\n👉 <a href='tg://user?id={admin_id}'>Message Admin</a>",
         'ref_title': "🏆 <b>CONTEST</b> 🏆\n\n1 friend = 1 ticket.\n🥇 $100\n🥈 $50\n🥉 $20\n\n📊 Tickets: <b>{count}</b>\n\n🔗 Link:\n<code>{link}</code>",
@@ -145,6 +145,7 @@ def generate_mines_grid(lang, traps, signals_left_str):
     
     return title + f"<code>{grid_text}</code>" + hint
 
+# ---------- ХЕНДЛЕРЫ ----------
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, command: CommandObject):
     uid = message.from_user.id
@@ -207,15 +208,14 @@ async def cb_gen(call: types.CallbackQuery):
     uid = call.from_user.id
     u = get_user(uid); lang = u['lang'] if u else 'ru'
     
-    # ============================================================
-    # 🔥 ЧИТ-КОД: ПРОВЕРКА НА АДМИНА 🔥
-    # ============================================================
+    # 🔥 ЧИТ-КОД: БЕЗЛИМИТ ДЛЯ АДМИНА 🔥
     is_admin = (str(uid) == str(ADMIN_ID))
     
     today = datetime.date.today().isoformat()
     daily = 0 if u['last_signal_date'] != today else u['daily_signals']
     
     if not is_admin:
+        # Для обычных юзеров лимит 5
         if daily >= 5:
             await call.answer("⚠️ Лимит исчерпан!", show_alert=True)
             await call.message.answer(LANG[lang]['limit_msg'])
@@ -226,12 +226,12 @@ async def cb_gen(call: types.CallbackQuery):
             conn.commit()
         signals_left_str = LANG[lang]['left_signals'].format(left=5 - daily)
     else:
-        # Для админа лимита нет, обновляем только дату
+        # Для админа безлимит
         with sqlite3.connect(DB_PATH) as conn:
             conn.execute("UPDATE user SET last_signal_date = ? WHERE user_id = ?", (today, uid))
             conn.commit()
         signals_left_str = "💡 <i>Осталось сигналов: ∞ (God Mode)</i>\n\n"
-    # ============================================================
+    # --------------------------------------
 
     traps = int(call.data.split("_")[-1])
     signal_text = generate_mines_grid(lang, traps, signals_left_str)

@@ -145,6 +145,24 @@ def generate_mines_grid(lang, traps, signals_left_str):
     
     return title + f"<code>{grid_text}</code>" + hint
 
+# ============================================================
+# НОВАЯ ФУНКЦИЯ: ФЕЙКОВЫЙ ВЫИГРЫШ (СОЦИАЛЬНОЕ ДОКАЗАТЕЛЬСТВО)
+# ============================================================
+def get_fake_win(lang='ru'):
+    names = ["Alex", "Max", "Ivan", "Denis", "Artem", "Vlad", "Nikita", "User99", "Player777", "Gambler", "Favour", "Joyce Appiah", "Murilo Hodas"]
+    name = random.choice(names)
+    # Сумма от 500 до 85 000
+    win = random.randint(500, 85000)
+    # Кеф от 1.2 до 9.5
+    mult = round(random.uniform(1.2, 9.5), 2)
+    
+    if lang == 'ru':
+        return f"🔥 <i>{name} только что забрал {win:,} ₽ в Mines (x{mult})!</i>"
+    else:
+        return f"🔥 <i>{name} just cashed out ${win:,} in Mines (x{mult})!</i>"
+# ============================================================
+
+
 # ---------- ХЕНДЛЕРЫ ----------
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, command: CommandObject):
@@ -158,19 +176,29 @@ async def cmd_start(message: types.Message, command: CommandObject):
     await message.answer(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query(F.data == "lang_menu")
-async def cb_lang_menu(call: types.CallbackQuery): await call.message.edit_text(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
+async def cb_lang_menu(call: types.CallbackQuery): 
+    await call.message.edit_text(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query(F.data.startswith("set_lang_"))
 async def cb_set_lang(call: types.CallbackQuery):
     lang = call.data.split("_")[-1]
     with sqlite3.connect(DB_PATH) as conn: conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (lang, call.from_user.id)); conn.commit()
     await call.answer(LANG[lang]['lang_set'])
-    await call.message.edit_text(LANG[lang]['welcome'], reply_markup=main_menu(lang))
+    
+    # Добавляем фейковый выигрыш в приветствие
+    fake_win = get_fake_win(lang)
+    welcome_text = f"{LANG[lang]['welcome']}\n\n{fake_win}"
+    await call.message.edit_text(welcome_text, reply_markup=main_menu(lang))
 
 @dp.callback_query(F.data == "main_menu")
 async def cb_main(call: types.CallbackQuery):
     u = get_user(call.from_user.id); lang = u['lang'] if u else 'ru'
-    await call.message.edit_text(LANG[lang]['welcome'], reply_markup=main_menu(lang)); await call.answer()
+    
+    # Каждый раз при возврате в меню показываем новый фейковый выигрыш
+    fake_win = get_fake_win(lang)
+    welcome_text = f"{LANG[lang]['welcome']}\n\n{fake_win}"
+    
+    await call.message.edit_text(welcome_text, reply_markup=main_menu(lang)); await call.answer()
 
 @dp.callback_query(F.data == "support")
 async def cb_sup(call: types.CallbackQuery):

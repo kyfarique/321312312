@@ -18,11 +18,13 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 
 # ============================================================
-#  НАСТРОЙКИ MINES
+#  НАСТРОЙКИ MINES BOT
 # ============================================================
-BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ"
+BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" # Токен Mines-бота
 ADMIN_ID  = "6109042131"
 WEB_PORT  = int(os.getenv("PORT", "5000"))
+
+# Ссылка для Mines
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
 
 # ============================================================
@@ -129,15 +131,19 @@ def sign_kb(lang):
 def generate_mines_grid(lang, traps, signals_left_str):
     cells = ['⭐'] * (25 - traps) + ['💣'] * traps
     random.shuffle(cells)
+    
     grid_text = ""
     for i in range(5):
         row = cells[i*5:(i+1)*5]
         grid_text += " ".join(row) + "\n"
+        
     safe_cells = [str(i+1) for i, cell in enumerate(cells) if cell == '⭐']
     random.shuffle(safe_cells)
     recommended = ", ".join(safe_cells[:4])
+    
     title = LANG[lang]['signal_title'].format(traps=traps)
     hint = LANG[lang]['signal_hint'].format(cells=recommended, left=signals_left_str)
+    
     return title + f"<code>{grid_text}</code>" + hint
 
 def get_fake_win(lang='ru'):
@@ -211,6 +217,8 @@ async def cb_sign(call: types.CallbackQuery):
 async def cb_gen(call: types.CallbackQuery):
     uid = call.from_user.id
     u = get_user(uid); lang = u['lang'] if u else 'ru'
+    
+    # God Mode для админа
     is_admin = (str(uid) == str(ADMIN_ID))
     today = datetime.date.today().isoformat()
     daily = 0 if u['last_signal_date'] != today else u['daily_signals']
@@ -246,11 +254,15 @@ async def cmd_top(msg: types.Message):
     text = "🏆 <b>ТОП-10</b>\n\n" + "".join([f"{i}. ID: <code>{r[0]}</code> — <b>{r[1]} билетов</b>\n" for i, r in enumerate(rows, 1)]) if rows else "Нет рефералов."
     await msg.answer(text)
 
+# ============================================================
+# ВСТРОЕННЫЙ ВЕБ-СЕРВЕР ДЛЯ ПОСТБЕКОВ И API
+# ============================================================
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         p = urllib.parse.urlparse(self.path)
         if p.path == '/health': self.send_response(200); self.end_headers(); self.wfile.write(b'{"ok": true}'); return
         
+        # API для дашборда
         if p.path == '/api/stats':
             with sqlite3.connect(DB_PATH) as conn:
                 total = conn.execute("SELECT COUNT(*) FROM user").fetchone()[0]
@@ -263,21 +275,39 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"total": total, "regs": regs, "recent": recent}).encode())
             return
 
+        # Обработка постбека
         if p.path == '/postback':
             q = urllib.parse.parse_qs(p.query); s1, s2 = q.get('sub1',[''])[0], q.get('subid',[''])[0]
             if not s1 or not s2: self.send_response(400); self.end_headers(); return
             try: uid = int(s1)
             except: self.send_response(400); self.end_headers(); return
-            with sqlite3.connect(DB_PATH) as conn: conn.execute("INSERT INTO user (user_id, postback_id) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET postback_id = excluded.postback_id", (uid, s2)); conn.commit()
+            
+            # Записываем в БД
+            with sqlite3.connect(DB_PATH) as conn: 
+                conn.execute("INSERT INTO user (user_id, postback_id) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET postback_id = excluded.postback_id", (uid, s2))
+                conn.commit()
+            
             u = get_user(uid); lang = u['lang'] if u else 'ru'
-            try: urllib.request.urlopen(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={uid}&text={urllib.parse.quote(LANG[lang]['regged'])}&parse_mode=HTML", timeout=5)
-            except: pass
+            
+            # Отправляем сообщение с ЛОГИРОВАНИЕМ ОШИБОК
+            try:
+                msg_text = LANG[lang]['regged']
+                url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={uid}&text={urllib.parse.quote(msg_text)}&parse_mode=HTML"
+                req = urllib.request.urlopen(url, timeout=10)
+                log.info(f"Telegram API response for {uid}: {req.read().decode()}")
+            except Exception as e:
+                log.error(f"ОШИБКА ОТПРАВКИ СООБЩЕНИЯ ДЛЯ {uid}: {e}")
+            
+            # Уведомляем реферера
             if u and u.get('referrer_id'):
                 r_u = get_user(u['referrer_id'])
                 if r_u:
                     t = LANG[r_u['lang']]['ref_success'] if r_u['ref_count'] >= 3 else LANG[r_u['lang']]['ref_notify'].format(count=r_u['ref_count'])
-                    try: urllib.request.urlopen(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={r_u['user_id']}&text={urllib.parse.quote(t)}&parse_mode=HTML", timeout=5)
+                    try: 
+                        ref_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={r_u['user_id']}&text={urllib.parse.quote(t)}&parse_mode=HTML"
+                        urllib.request.urlopen(ref_url, timeout=5)
                     except: pass
+                    
             self.send_response(200); self.end_headers(); self.wfile.write(f"sub1={s1}; subid={s2}; OK".encode('utf-8')); return
         self.send_response(404); self.end_headers()
 

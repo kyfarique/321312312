@@ -7,6 +7,7 @@ import threading
 import http.server
 import urllib.parse
 import urllib.request
+import urllib.error
 import datetime
 import asyncio
 import json
@@ -24,7 +25,7 @@ BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" # Токен Mines-
 ADMIN_ID  = "6109042131"
 WEB_PORT  = int(os.getenv("PORT", "5000"))
 
-# Ссылка для Mines
+# Твоя партнерская ссылка с меткой sub1={uid}
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
 
 # ============================================================
@@ -94,7 +95,7 @@ def get_user(uid: int):
         row = conn.execute("SELECT postback_id, language, referrer_id, daily_signals, last_signal_date FROM user WHERE user_id = ?", (uid,)).fetchone()
         if row:
             lang = row[1] if row[1] in LANG else 'ru'
-            ref_count = conn.execute("SELECT COUNT(*) FROM user WHERE referrer_id = ? AND postback_id IS NOT NULL", (uid,)).fetchone()[0]
+            ref_count = conn.execute("SELECT COUNT(*) FROM user WHERE referrer_id = ? AND postback_id IS NOT NULL AND postback_id != 'null'", (uid,)).fetchone()[0]
             return {"user_id": uid, "postback_id": row[0], "lang": lang, "referrer_id": row[2], "ref_count": ref_count, "daily_signals": row[3] or 0, "last_signal_date": row[4]}
     return None
 
@@ -208,10 +209,18 @@ async def cb_reg(call: types.CallbackQuery):
 @dp.callback_query(F.data == "sign")
 async def cb_sign(call: types.CallbackQuery):
     u = get_user(call.from_user.id)
-    if not u or not (u['postback_id'] or u['ref_count'] >= 3):
+    
+    # Исправленная проверка: если postback_id == "null", считаем что не зареган
+    is_registered = u and u['postback_id'] and u['postback_id'].lower() != "null"
+    
+    if not u or (not is_registered and u['ref_count'] < 3):
         lang = u['lang'] if u else 'ru'
-        await call.message.answer(LANG[lang]['need_reg'], reply_markup=reg_kb(call.from_user.id, lang)); await call.answer(); return
-    await call.message.edit_text(LANG[u['lang']]['choose_traps'], reply_markup=traps_menu(u['lang'])); await call.answer()
+        await call.message.answer(LANG[lang]['need_reg'], reply_markup=reg_kb(call.from_user.id, lang))
+        await call.answer()
+        return
+        
+    await call.message.edit_text(LANG[u['lang']]['choose_traps'], reply_markup=traps_menu(u['lang']))
+    await call.answer()
 
 @dp.callback_query(F.data.startswith("gen_trap_"))
 async def cb_gen(call: types.CallbackQuery):
@@ -262,11 +271,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         p = urllib.parse.urlparse(self.path)
         if p.path == '/health': self.send_response(200); self.end_headers(); self.wfile.write(b'{"ok": true}'); return
         
-        # API для дашборда
         if p.path == '/api/stats':
             with sqlite3.connect(DB_PATH) as conn:
                 total = conn.execute("SELECT COUNT(*) FROM user").fetchone()[0]
-                regs = conn.execute("SELECT COUNT(*) FROM user WHERE postback_id IS NOT NULL").fetchone()[0]
+                regs = conn.execute("SELECT COUNT(*) FROM user WHERE postback_id IS NOT NULL AND postback_id != 'null'").fetchone()[0]
                 recent = conn.execute("SELECT user_id, postback_id FROM user WHERE postback_id IS NOT NULL ORDER BY rowid DESC LIMIT 10").fetchall()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -275,30 +283,31 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"total": total, "regs": regs, "recent": recent}).encode())
             return
 
-        # Обработка постбека
         if p.path == '/postback':
             q = urllib.parse.parse_qs(p.query); s1, s2 = q.get('sub1',[''])[0], q.get('subid',[''])[0]
             if not s1 or not s2: self.send_response(400); self.end_headers(); return
             try: uid = int(s1)
             except: self.send_response(400); self.end_headers(); return
             
-            # Записываем в БД
             with sqlite3.connect(DB_PATH) as conn: 
                 conn.execute("INSERT INTO user (user_id, postback_id) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET postback_id = excluded.postback_id", (uid, s2))
                 conn.commit()
             
             u = get_user(uid); lang = u['lang'] if u else 'ru'
             
-            # Отправляем сообщение с ЛОГИРОВАНИЕМ ОШИБОК
             try:
                 msg_text = LANG[lang]['regged']
                 url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={uid}&text={urllib.parse.quote(msg_text)}&parse_mode=HTML"
                 req = urllib.request.urlopen(url, timeout=10)
                 log.info(f"Telegram API response for {uid}: {req.read().decode()}")
+            except urllib.error.HTTPError as e:
+                if e.code == 400:
+                    log.warning(f"Пользователь {uid} не нажал /start в боте. Сообщение не отправлено.")
+                else:
+                    log.error(f"ОШИБКА ОТПРАВКИ СООБЩЕНИЯ ДЛЯ {uid}: {e}")
             except Exception as e:
                 log.error(f"ОШИБКА ОТПРАВКИ СООБЩЕНИЯ ДЛЯ {uid}: {e}")
             
-            # Уведомляем реферера
             if u and u.get('referrer_id'):
                 r_u = get_user(u['referrer_id'])
                 if r_u:

@@ -23,11 +23,10 @@ from aiogram.fsm.storage.memory import MemoryStorage
 # ============================================================
 #  НАСТРОЙКИ MINES BOT
 # ============================================================
-BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" # Токен Mines-бота
+BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" 
 ADMIN_ID  = "6109042131"
 WEB_PORT  = int(os.getenv("PORT", "5000"))
 
-# Ссылка для Mines (замени на свою партнерскую, если нужно)
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
 
 # ============================================================
@@ -138,19 +137,15 @@ def sign_kb(lang):
 def generate_mines_grid(lang, traps, signals_left_str):
     cells = ['⭐'] * (25 - traps) + ['💣'] * traps
     random.shuffle(cells)
-    
     grid_text = ""
     for i in range(5):
         row = cells[i*5:(i+1)*5]
         grid_text += " ".join(row) + "\n"
-        
     safe_cells = [str(i+1) for i, cell in enumerate(cells) if cell == '⭐']
     random.shuffle(safe_cells)
     recommended = ", ".join(safe_cells[:4])
-    
     title = LANG[lang]['signal_title'].format(traps=traps)
     hint = LANG[lang]['signal_hint'].format(cells=recommended, left=signals_left_str)
-    
     return title + f"<code>{grid_text}</code>" + hint
 
 def get_fake_win(lang='ru'):
@@ -161,7 +156,7 @@ def get_fake_win(lang='ru'):
     if lang == 'ru': return f"🔥 <i>{name} только что забрал {win:,} ₽ в Mines (x{mult})!</i>"
     else: return f"🔥 <i>{name} just cashed out ${win:,} in Mines (x{mult})!</i>"
 
-# --- Обработчики ---
+# --- Обработчики (Синтаксис aiogram 3.x) ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, command: CommandObject):
     uid = message.from_user.id
@@ -174,7 +169,8 @@ async def cmd_start(message: types.Message, command: CommandObject):
     await message.answer(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query(F.data == "lang_menu")
-async def cb_lang_menu(call: types.CallbackQuery): await call.message.edit_text(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
+async def cb_lang_menu(call: types.CallbackQuery): 
+    await call.message.edit_text(LANG['ru']['choose_lang'], reply_markup=get_lang_kb())
 
 @dp.callback_query(F.data.startswith("set_lang_"))
 async def cb_set_lang(call: types.CallbackQuery):
@@ -231,7 +227,6 @@ async def cb_sign(call: types.CallbackQuery):
 async def cb_gen(call: types.CallbackQuery):
     uid = call.from_user.id
     u = get_user(uid); lang = u['lang'] if u else 'ru'
-    
     is_admin = (str(uid) == str(ADMIN_ID))
     today = datetime.date.today().isoformat()
     daily = 0 if u['last_signal_date'] != today else u['daily_signals']
@@ -254,7 +249,7 @@ async def cb_gen(call: types.CallbackQuery):
     await call.message.edit_text(text=signal_text, reply_markup=sign_kb(lang)); await call.answer()
 
 # ============================================================
-# АДМИН ПАНЕЛЬ И РАССЫЛКА
+# АДМИН ПАНЕЛЬ И РАССЫЛКА (Синтаксис aiogram 3.x)
 # ============================================================
 @dp.message(Command("admin"))
 async def cmd_adm(msg: types.Message):
@@ -287,7 +282,7 @@ async def cb_bc_start(call: types.CallbackQuery, state: FSMContext):
     await Broadcast.waiting_msg.set()
     await call.answer()
 
-@dp.message_handler(state=Broadcast.waiting_msg, content_types=['text', 'photo', 'video'])
+@dp.message(Broadcast.waiting_msg, F.content_type.in_({'text', 'photo', 'video'}))
 async def process_broadcast(message: types.Message, state: FSMContext):
     if str(message.from_user.id) != str(ADMIN_ID): return
     await state.finish()
@@ -317,7 +312,7 @@ async def cmd_top(msg: types.Message):
     await msg.answer(text)
 
 # ============================================================
-# ВСТРОЕННЫЙ ВЕБ-СЕРВЕР ДЛЯ ПОСТБЕКОВ И API
+# ВСТРОЕННЫЙ ВЕБ-СЕРВЕР
 # ============================================================
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):

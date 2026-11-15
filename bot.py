@@ -27,8 +27,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 # ============================================================
 #  НАСТРОЙКИ MINES BOT
 # ============================================================
-# Вставлен ваш новый токен
-BOT_TOKEN = os.getenv("BOT_TOKEN", "7303209127:AAFpb16mmk7bZu2ipfV0tAUFepveS4hL78k") 
+# Токен, который вы прислали
+BOT_TOKEN = "7303209127:AAFpb16mmk7bZu2ipfV0tAUFepveS4hL78k" 
 ADMIN_ID  = os.getenv("ADMIN_ID", "6109042131")
 WEB_PORT  = int(os.getenv("PORT", "5000"))
 
@@ -175,7 +175,7 @@ class Broadcast(StatesGroup):
     waiting_msg = State()
 
 # ============================================================
-# БЕЗОПАСНАЯ РАБОТА С БД (ЗАЩИТА ОТ ЗАВИСАНИЙ)
+# БЕЗОПАСНАЯ РАБОТА С БД
 # ============================================================
 @contextlib.contextmanager
 def get_db():
@@ -261,7 +261,6 @@ def get_lang_kb():
     ])
 
 def get_reply_menu(lang):
-    """Постоянные кнопки над чатом."""
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=LANG[lang]['btn_sign'])],
@@ -328,7 +327,6 @@ async def cmd_start(message: types.Message, command: CommandObject):
 
 @dp.callback_query(F.data.startswith("set_lang_"))
 async def cb_set_lang(call: types.CallbackQuery):
-    # СРАЗУ убираем часики
     try:
         await call.answer("Загрузка...")
     except Exception:
@@ -630,7 +628,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
 # ЗАПУСК
 # ============================================================
 async def main():
-    # Принудительно сбрасываем вебхуки, чтобы избежать конфликтов
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_chat_menu_button(menu_button=MenuButtonCommands(text="Menu"))
     log.info("Bot starting polling...")

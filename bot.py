@@ -11,6 +11,7 @@ import urllib.error
 import datetime
 import asyncio
 import json
+import contextlib
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command, CommandObject
@@ -26,6 +27,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 # ============================================================
 #  НАСТРОЙКИ MINES BOT
 # ============================================================
+# ВАЖНО: Токен берется из переменных окружения Bothost. 
+# Если переменной нет, используется запасной вариант.
 BOT_TOKEN = os.getenv("BOT_TOKEN", "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ") 
 ADMIN_ID  = os.getenv("ADMIN_ID", "6109042131")
 WEB_PORT  = int(os.getenv("PORT", "5000"))
@@ -172,11 +175,21 @@ log = logging.getLogger("mines")
 class Broadcast(StatesGroup):
     waiting_msg = State()
 
-# Функция безопасного подключения к БД (защита от блокировок)
+# ============================================================
+# БЕЗОПАСНАЯ РАБОТА С БД (ГЛАВНЫЙ ФИКС ЗАВИСАНИЙ)
+# ============================================================
+@contextlib.contextmanager
 def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=20)
-    conn.execute("PRAGMA journal_mode=WAL;") 
-    return conn
+    conn.execute("PRAGMA journal_mode=WAL;")
+    try:
+        yield conn
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
 
 def init_db():
     with get_db() as conn:
@@ -189,7 +202,6 @@ def init_db():
                 created_at TEXT
             )
         """)
-        conn.commit()
         for col, typ in [("language", "TEXT DEFAULT 'ru'"), ("referrer_id", "INTEGER"), ("daily_signals", "INTEGER DEFAULT 0"), ("last_signal_date", "TEXT"), ("total_deposit", "REAL DEFAULT 0")]:
             try: conn.execute(f"ALTER TABLE user ADD COLUMN {col} {typ}")
             except sqlite3.OperationalError: pass
@@ -213,7 +225,6 @@ def log_event(uid: int, event: str):
         with get_db() as conn:
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             conn.execute("INSERT INTO events (user_id, event, created_at) VALUES (?, ?, ?)", (uid, event, now))
-            conn.commit()
     except Exception as e:
         log.error(f"Event log error: {e}")
 
@@ -241,7 +252,7 @@ bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML", link_
 dp = Dispatcher(storage=MemoryStorage())
 
 # ============================================================
-# КЛАВИАТУРЫ (Исправлено!)
+# КЛАВИАТУРЫ
 # ============================================================
 def get_lang_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
@@ -251,7 +262,7 @@ def get_lang_kb():
     ])
 
 def get_reply_menu(lang):
-    """Постоянные кнопки над чатом (Reply-клавиатура)."""
+    """Постоянные кнопки над чатом."""
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=LANG[lang]['btn_sign'])],
@@ -308,9 +319,8 @@ async def cmd_start(message: types.Message, command: CommandObject):
         conn.execute("INSERT OR IGNORE INTO user (user_id) VALUES (?)", (uid,))
         if ref and ref.isdigit() and int(ref) != uid:
             conn.execute("UPDATE user SET referrer_id = ? WHERE user_id = ? AND referrer_id IS NULL", (int(ref), uid))
-        conn.commit()
-    log_event(uid, "start")
     
+    log_event(uid, "start")
     name = message.from_user.first_name or "NoName"
     uname = f"@{message.from_user.username}" if message.from_user.username else "без юзернейма"
     await notify_admin(f"🆕 <b>НОВЫЙ ЮЗЕР!</b>\n👤 {name} ({uname})", uid)
@@ -319,16 +329,19 @@ async def cmd_start(message: types.Message, command: CommandObject):
 
 @dp.callback_query(F.data.startswith("set_lang_"))
 async def cb_set_lang(call: types.CallbackQuery):
+    # СРАЗУ убираем часики
+    try:
+        await call.answer("Загрузка...")
+    except Exception:
+        pass
+
     try:
         lang = call.data.split("_")[-1]
         log_event(call.from_user.id, f"set_lang_{lang}")
         
         with get_db() as conn: 
             conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (lang, call.from_user.id))
-            conn.commit()
             
-        await call.answer(LANG[lang]['lang_set'])
-        
         welcome_text = f"{LANG[lang]['welcome']}\n\n{get_fake_win(lang)}"
         
         await bot.send_message(
@@ -344,8 +357,7 @@ async def cb_set_lang(call: types.CallbackQuery):
             
         await notify_admin(f"🌐 Выбрал язык: <b>{lang.upper()}</b>", call.from_user.id)
     except Exception as e:
-        log.error(f"Ошибка в обработчике языка: {e}", exc_info=True)
-        await call.answer("Произошла ошибка. Попробуйте еще раз.", show_alert=True)
+        log.error(f"ОШИБКА В ОБРАБОТЧИКЕ ЯЗЫКА: {e}", exc_info=True)
 
 @dp.callback_query(F.data == "lang_menu")
 async def cb_lang_menu(call: types.CallbackQuery):
@@ -439,11 +451,11 @@ async def cb_gen(call: types.CallbackQuery):
             await call.message.answer(LANG[lang]['limit_msg']); return
         daily += 1
         with get_db() as conn:
-            conn.execute("UPDATE user SET daily_signals = ?, last_signal_date = ? WHERE user_id = ?", (daily, today, uid)); conn.commit()
+            conn.execute("UPDATE user SET daily_signals = ?, last_signal_date = ? WHERE user_id = ?", (daily, today, uid))
         signals_left_str = LANG[lang]['left_signals'].format(left=5 - daily)
     else:
         with get_db() as conn:
-            conn.execute("UPDATE user SET last_signal_date = ? WHERE user_id = ?", (today, uid)); conn.commit()
+            conn.execute("UPDATE user SET last_signal_date = ? WHERE user_id = ?", (today, uid))
         signals_left_str = "💡 <i>Signals left: ∞ (God Mode)</i>\n\n"
 
     await notify_admin(f"🎰 <b>Получил сигнал</b> ({traps} traps)", uid)
@@ -599,7 +611,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
             
             with get_db() as conn: 
                 conn.execute("INSERT INTO user (user_id, postback_id, total_deposit) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET postback_id = excluded.postback_id, total_deposit = user.total_deposit + excluded.total_deposit", (uid, s2, amount))
-                conn.commit()
             
             log_event(uid, "postback_received")
             u = get_user(uid); lang = u['lang'] if u else 'ru'

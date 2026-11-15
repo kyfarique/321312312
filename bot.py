@@ -27,6 +27,7 @@ BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ"
 ADMIN_ID  = "6109042131"
 WEB_PORT  = int(os.getenv("PORT", "5000"))
 
+# Твоя партнерская ссылка
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
 
 # ============================================================
@@ -36,7 +37,7 @@ DB_PATH  = os.path.join(BASE_DIR, "DataBase.db")
 LANG = {
     'ru': {
         'welcome': "💣 <b>MINES AI PREDICTOR</b> 💣\n\nПриветствуем! Наша нейросеть сканирует алгоритмы игры <b>Mines</b> в 1win и находит безопасные ячейки с точностью до 90%.",
-        'btn_reg': "💳 Регистрация", 'btn_instr': "📖 Инструкция", 'btn_sign': "💣 Выдать сигнал", 'btn_lang': "🌐 Язык", 'btn_ref': "👥 Конкурс и Рефералы", 'btn_support': "🆘 Поддержка",
+        'btn_reg': "💳 Регистрация", 'btn_instr': "📖 Инструкция", 'btn_sign': "💣 Выдать сигнал", 'btn_lang': "🌐 Язык", 'btn_ref': "👥 Конкурс", 'btn_support': "🆘 Поддержка",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Язык изменен на Русский 🇷🇺",
         'need_reg': "⚠️ <b>ДОСТУП ЗАБЛОКИРОВАН!</b>\n\nАлгоритм ИИ требует привязки аккаунта 1win.\n\n👇 Зарегистрируйся в 1 клик:",
@@ -47,7 +48,7 @@ LANG = {
         'signal_title': "💣 <b>Анализ завершен!</b>\nЛовушек: <b>{traps}</b>\n\n",
         'signal_hint': "\n🎯 <b>Рекомендуемые ячейки:</b> <code>{cells}</code>\n\n{left}🔥 <i>Удачи! Не забывай про банкролл.</i>",
         'left_signals': "💡 <i>Осталось сигналов: {left}</i>\n\n",
-        'limit_msg': "⚠️ <b>ЛИМИТ ИСЧЕРПАН!</b>\n\n👇 Пригласите друга по кнопке «👥 Конкурс и Рефералы»!",
+        'limit_msg': "⚠️ <b>ЛИМИТ ИСЧЕРПАН!</b>\n\n👇 Пригласите друга по кнопке «👥 Конкурс»!",
         'instr_text': "📖 <b>КАК ИГРАТЬ:</b>\n\n1️⃣ <b>Регистрация:</b> <a href='{url}'>КЛИКНИ СЮДА</a>\n2️⃣ <b>Депозит.</b>\n3️⃣ <b>Игра:</b> Раздел <b>Mines</b>.\n4️⃣ <b>Настройка:</b> Выстави ловушки по сигналу.",
         'admin_panel': "⚙️ <b>АДМИН ПАНЕЛЬ</b>\n\n👑 Статус: <b>GOD MODE (Безлимит)</b>\nВыберите действие:",
         'not_admin': "❌ Вы не админ.",
@@ -58,7 +59,7 @@ LANG = {
     },
     'en': {
         'welcome': "💣 <b>MINES AI PREDICTOR</b> 💣\n\nWelcome! Our neural network scans <b>Mines</b> algorithms in 1win and finds safe cells with up to 90% accuracy.",
-        'btn_reg': "💳 Register", 'btn_instr': "📖 Instruction", 'btn_sign': "💣 Get Signal", 'btn_lang': "🌐 Language", 'btn_ref': "👥 Contest & Refs", 'btn_support': "🆘 Support",
+        'btn_reg': "💳 Register", 'btn_instr': "📖 Instruction", 'btn_sign': "💣 Get Signal", 'btn_lang': "🌐 Language", 'btn_ref': "👥 Contest", 'btn_support': "🆘 Support",
         'choose_lang': "🌐 Выберите язык / Choose language:",
         'lang_set': "Language changed to English 🇬🇧",
         'need_reg': "⚠️ <b>ACCESS BLOCKED!</b>\n\nRegister below to unlock:",
@@ -69,7 +70,7 @@ LANG = {
         'signal_title': "💣 <b>Analysis Complete!</b>\nTraps: <b>{traps}</b>\n\n",
         'signal_hint': "\n🎯 <b>Recommended cells:</b> <code>{cells}</code>\n\n{left}🔥 <i>Good luck!</i>",
         'left_signals': "💡 <i>Signals left: {left}</i>\n\n",
-        'limit_msg': "⚠️ <b>LIMIT REACHED!</b>\n\nInvite a friend via '👥 Contest & Refs'!",
+        'limit_msg': "⚠️ <b>LIMIT REACHED!</b>\n\nInvite a friend via '👥 Contest'!",
         'instr_text': "📖 <b>HOW TO START:</b>\n\n1️⃣ <b>Register:</b> <a href='{url}'>CLICK HERE</a>\n2️⃣ <b>Deposit.</b>\n3️⃣ <b>Game:</b> <b>Mines</b>.",
         'admin_panel': "⚙️ <b>ADMIN PANEL</b>\n\n👑 Status: <b>GOD MODE (Unlimited)</b>\nChoose action:",
         'not_admin': "❌ No rights.",
@@ -106,7 +107,6 @@ def get_user(uid: int):
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML", link_preview_is_disabled=True))
 dp = Dispatcher(storage=MemoryStorage())
 
-# --- Клавиатуры ---
 def get_lang_kb():
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🇷🇺 Русский", callback_data="set_lang_ru"), InlineKeyboardButton(text="🇬🇧 English", callback_data="set_lang_en")]])
 
@@ -137,15 +137,19 @@ def sign_kb(lang):
 def generate_mines_grid(lang, traps, signals_left_str):
     cells = ['⭐'] * (25 - traps) + ['💣'] * traps
     random.shuffle(cells)
+    
     grid_text = ""
     for i in range(5):
         row = cells[i*5:(i+1)*5]
         grid_text += " ".join(row) + "\n"
+        
     safe_cells = [str(i+1) for i, cell in enumerate(cells) if cell == '⭐']
     random.shuffle(safe_cells)
     recommended = ", ".join(safe_cells[:4])
+    
     title = LANG[lang]['signal_title'].format(traps=traps)
     hint = LANG[lang]['signal_hint'].format(cells=recommended, left=signals_left_str)
+    
     return title + f"<code>{grid_text}</code>" + hint
 
 def get_fake_win(lang='ru'):
@@ -156,7 +160,6 @@ def get_fake_win(lang='ru'):
     if lang == 'ru': return f"🔥 <i>{name} только что забрал {win:,} ₽ в Mines (x{mult})!</i>"
     else: return f"🔥 <i>{name} just cashed out ${win:,} in Mines (x{mult})!</i>"
 
-# --- Обработчики (Синтаксис aiogram 3.x) ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, command: CommandObject):
     uid = message.from_user.id
@@ -227,6 +230,7 @@ async def cb_sign(call: types.CallbackQuery):
 async def cb_gen(call: types.CallbackQuery):
     uid = call.from_user.id
     u = get_user(uid); lang = u['lang'] if u else 'ru'
+    
     is_admin = (str(uid) == str(ADMIN_ID))
     today = datetime.date.today().isoformat()
     daily = 0 if u['last_signal_date'] != today else u['daily_signals']
@@ -249,7 +253,7 @@ async def cb_gen(call: types.CallbackQuery):
     await call.message.edit_text(text=signal_text, reply_markup=sign_kb(lang)); await call.answer()
 
 # ============================================================
-# АДМИН ПАНЕЛЬ И РАССЫЛКА (Синтаксис aiogram 3.x)
+# АДМИН ПАНЕЛЬ И РАССЫЛКА (Исправленный синтаксис aiogram 3.x)
 # ============================================================
 @dp.message(Command("admin"))
 async def cmd_adm(msg: types.Message):
@@ -279,13 +283,13 @@ async def cb_stat(call: types.CallbackQuery):
 async def cb_bc_start(call: types.CallbackQuery, state: FSMContext):
     if str(call.from_user.id) != str(ADMIN_ID): return
     await call.message.edit_text("📢 Отправьте текст (или фото/видео) для рассылки всем пользователям:")
-    await Broadcast.waiting_msg.set()
+    await state.set_state(Broadcast.waiting_msg) # ИСПРАВЛЕНО ДЛЯ AIOGRAM 3.X
     await call.answer()
 
 @dp.message(Broadcast.waiting_msg, F.content_type.in_({'text', 'photo', 'video'}))
 async def process_broadcast(message: types.Message, state: FSMContext):
     if str(message.from_user.id) != str(ADMIN_ID): return
-    await state.finish()
+    await state.clear() # ИСПРАВЛЕНО ДЛЯ AIOGRAM 3.X
     
     with sqlite3.connect(DB_PATH) as conn:
         users = conn.execute("SELECT user_id FROM user").fetchall()
@@ -312,7 +316,7 @@ async def cmd_top(msg: types.Message):
     await msg.answer(text)
 
 # ============================================================
-# ВСТРОЕННЫЙ ВЕБ-СЕРВЕР
+# ВСТРОЕННЫЙ ВЕБ-СЕРВЕР ДЛЯ ПОСТБЕКОВ И API
 # ============================================================
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):

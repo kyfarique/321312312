@@ -26,8 +26,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 # ============================================================
 #  НАСТРОЙКИ MINES BOT
 # ============================================================
-# ВАЖНО: Токен лучше задавать в переменных окружения Bothost (BOT_TOKEN).
-# Если токен не задан в окружении, используется тот, что ниже.
 BOT_TOKEN = os.getenv("BOT_TOKEN", "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ") 
 ADMIN_ID  = os.getenv("ADMIN_ID", "6109042131")
 WEB_PORT  = int(os.getenv("PORT", "5000"))
@@ -177,7 +175,7 @@ class Broadcast(StatesGroup):
 # Функция безопасного подключения к БД (защита от блокировок)
 def get_db():
     conn = sqlite3.connect(DB_PATH, timeout=20)
-    conn.execute("PRAGMA journal_mode=WAL;") # Режим WAL предотвращает зависания при одновременном доступе
+    conn.execute("PRAGMA journal_mode=WAL;") 
     return conn
 
 def init_db():
@@ -243,7 +241,7 @@ bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML", link_
 dp = Dispatcher(storage=MemoryStorage())
 
 # ============================================================
-# КЛАВИАТУРЫ
+# КЛАВИАТУРЫ (Исправлено!)
 # ============================================================
 def get_lang_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
@@ -254,11 +252,14 @@ def get_lang_kb():
 
 def get_reply_menu(lang):
     """Постоянные кнопки над чатом (Reply-клавиатура)."""
-    kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.row(KeyboardButton(text=LANG[lang]['btn_sign']))
-    kb.row(KeyboardButton(text=LANG[lang]['btn_reg']), KeyboardButton(text=LANG[lang]['btn_instr']))
-    kb.row(KeyboardButton(text=LANG[lang]['btn_ref']), KeyboardButton(text=LANG[lang]['btn_support']), KeyboardButton(text=LANG[lang]['btn_lang']))
-    return kb
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=LANG[lang]['btn_sign'])],
+            [KeyboardButton(text=LANG[lang]['btn_reg']), KeyboardButton(text=LANG[lang]['btn_instr'])],
+            [KeyboardButton(text=LANG[lang]['btn_ref']), KeyboardButton(text=LANG[lang]['btn_support']), KeyboardButton(text=LANG[lang]['btn_lang'])]
+        ],
+        resize_keyboard=True
+    )
 
 def reg_kb(uid, lang):
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=LANG[lang]['btn_reg'], url=PARTNER_URL.format(uid=uid))]])
@@ -326,19 +327,16 @@ async def cb_set_lang(call: types.CallbackQuery):
             conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (lang, call.from_user.id))
             conn.commit()
             
-        # Сразу убираем "часики" загрузки на кнопке
         await call.answer(LANG[lang]['lang_set'])
         
         welcome_text = f"{LANG[lang]['welcome']}\n\n{get_fake_win(lang)}"
         
-        # Отправляем новое сообщение и показываем клавиатуру
         await bot.send_message(
             chat_id=call.from_user.id, 
             text=welcome_text, 
             reply_markup=get_reply_menu(lang)
         )
         
-        # Пытаемся удалить старое сообщение с выбором языка
         try:
             await call.message.delete()
         except Exception as e:
@@ -622,7 +620,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
 # ЗАПУСК
 # ============================================================
 async def main():
-    # ВАЖНО: Очищаем возможные вебхуки, чтобы кнопки работали корректно
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_chat_menu_button(menu_button=MenuButtonCommands(text="Menu"))
     log.info("Bot starting polling...")
@@ -630,7 +627,6 @@ async def main():
 
 if __name__ == "__main__":
     init_db()
-    # Запуск веб-сервера в отдельном потоке
     threading.Thread(target=lambda: http.server.HTTPServer(('0.0.0.0', WEB_PORT), Handler).serve_forever(), daemon=True).start()
     log.info("Web server started on port %s", WEB_PORT)
     asyncio.run(main())

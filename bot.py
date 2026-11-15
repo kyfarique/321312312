@@ -27,9 +27,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 # ============================================================
 #  НАСТРОЙКИ MINES BOT
 # ============================================================
-# ВАЖНО: Токен берется из переменных окружения Bothost. 
-# Если переменной нет, используется запасной вариант.
-BOT_TOKEN = os.getenv("BOT_TOKEN", "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ") 
+# Вставлен ваш новый токен
+BOT_TOKEN = os.getenv("BOT_TOKEN", "7303209127:AAFpb16mmk7bZu2ipfV0tAUFepveS4hL78k") 
 ADMIN_ID  = os.getenv("ADMIN_ID", "6109042131")
 WEB_PORT  = int(os.getenv("PORT", "5000"))
 
@@ -176,7 +175,7 @@ class Broadcast(StatesGroup):
     waiting_msg = State()
 
 # ============================================================
-# БЕЗОПАСНАЯ РАБОТА С БД (ГЛАВНЫЙ ФИКС ЗАВИСАНИЙ)
+# БЕЗОПАСНАЯ РАБОТА С БД (ЗАЩИТА ОТ ЗАВИСАНИЙ)
 # ============================================================
 @contextlib.contextmanager
 def get_db():
@@ -631,6 +630,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 # ЗАПУСК
 # ============================================================
 async def main():
+    # Принудительно сбрасываем вебхуки, чтобы избежать конфликтов
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_chat_menu_button(menu_button=MenuButtonCommands(text="Menu"))
     log.info("Bot starting polling...")

@@ -16,14 +16,18 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command, CommandObject
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, MenuButtonCommands
 from aiogram.client.default import DefaultBotProperties
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.memory import MemoryStorage
 
 # ============================================================
 #  НАСТРОЙКИ MINES BOT
 # ============================================================
-BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" 
+BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" # Токен Mines-бота
 ADMIN_ID  = "6109042131"
 WEB_PORT  = int(os.getenv("PORT", "5000"))
+
+# Ссылка для Mines (замени на свою партнерскую, если нужно)
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
 
 # ============================================================
@@ -46,7 +50,7 @@ LANG = {
         'left_signals': "💡 <i>Осталось сигналов: {left}</i>\n\n",
         'limit_msg': "⚠️ <b>ЛИМИТ ИСЧЕРПАН!</b>\n\n👇 Пригласите друга по кнопке «👥 Конкурс и Рефералы»!",
         'instr_text': "📖 <b>КАК ИГРАТЬ:</b>\n\n1️⃣ <b>Регистрация:</b> <a href='{url}'>КЛИКНИ СЮДА</a>\n2️⃣ <b>Депозит.</b>\n3️⃣ <b>Игра:</b> Раздел <b>Mines</b>.\n4️⃣ <b>Настройка:</b> Выстави ловушки по сигналу.",
-        'admin_panel': "⚙️ <b>АДМИН ПАНЕЛЬ</b>\n\n👑 Статус: <b>GOD MODE (Безлимит)</b>\n📊 Управление: /top - таблица лидеров",
+        'admin_panel': "⚙️ <b>АДМИН ПАНЕЛЬ</b>\n\n👑 Статус: <b>GOD MODE (Безлимит)</b>\nВыберите действие:",
         'not_admin': "❌ Вы не админ.",
         'support_text': "🆘 <b>Поддержка</b>\n\n👉 <a href='tg://user?id={admin_id}'>Написать админу</a>",
         'ref_title': "🏆 <b>КОНКУРС</b> 🏆\n\n1 друг = 1 билет.\n🥇 $100\n🥈 $50\n🥉 $20\n\n📊 Твои билеты: <b>{count}</b>\n\n🔗 Ссылка:\n<code>{link}</code>",
@@ -68,7 +72,7 @@ LANG = {
         'left_signals': "💡 <i>Signals left: {left}</i>\n\n",
         'limit_msg': "⚠️ <b>LIMIT REACHED!</b>\n\nInvite a friend via '👥 Contest & Refs'!",
         'instr_text': "📖 <b>HOW TO START:</b>\n\n1️⃣ <b>Register:</b> <a href='{url}'>CLICK HERE</a>\n2️⃣ <b>Deposit.</b>\n3️⃣ <b>Game:</b> <b>Mines</b>.",
-        'admin_panel': "⚙️ <b>ADMIN PANEL</b>\n\n👑 Status: <b>GOD MODE (Unlimited)</b>\n📊 Commands: /top - leaderboard",
+        'admin_panel': "⚙️ <b>ADMIN PANEL</b>\n\n👑 Status: <b>GOD MODE (Unlimited)</b>\nChoose action:",
         'not_admin': "❌ No rights.",
         'support_text': "🆘 <b>Support</b>\n\n👉 <a href='tg://user?id={admin_id}'>Message Admin</a>",
         'ref_title': "🏆 <b>CONTEST</b> 🏆\n\n1 friend = 1 ticket.\n🥇 $100\n🥈 $50\n🥉 $20\n\n📊 Tickets: <b>{count}</b>\n\n🔗 Link:\n<code>{link}</code>",
@@ -80,9 +84,11 @@ LANG = {
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("mines")
 
+class Broadcast(StatesGroup):
+    waiting_msg = State()
+
 def init_db():
     with sqlite3.connect(DB_PATH) as conn:
-        # Добавлена колонка total_deposit
         conn.execute("CREATE TABLE IF NOT EXISTS user (user_id INTEGER PRIMARY KEY, postback_id TEXT, language TEXT DEFAULT 'ru', referrer_id INTEGER, daily_signals INTEGER DEFAULT 0, last_signal_date TEXT, total_deposit REAL DEFAULT 0)")
         conn.commit()
         for col, typ in [("language", "TEXT DEFAULT 'ru'"), ("referrer_id", "INTEGER"), ("daily_signals", "INTEGER DEFAULT 0"), ("last_signal_date", "TEXT"), ("total_deposit", "REAL DEFAULT 0")]:
@@ -101,6 +107,7 @@ def get_user(uid: int):
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML", link_preview_is_disabled=True))
 dp = Dispatcher(storage=MemoryStorage())
 
+# --- Клавиатуры ---
 def get_lang_kb():
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🇷🇺 Русский", callback_data="set_lang_ru"), InlineKeyboardButton(text="🇬🇧 English", callback_data="set_lang_en")]])
 
@@ -131,15 +138,19 @@ def sign_kb(lang):
 def generate_mines_grid(lang, traps, signals_left_str):
     cells = ['⭐'] * (25 - traps) + ['💣'] * traps
     random.shuffle(cells)
+    
     grid_text = ""
     for i in range(5):
         row = cells[i*5:(i+1)*5]
         grid_text += " ".join(row) + "\n"
+        
     safe_cells = [str(i+1) for i, cell in enumerate(cells) if cell == '⭐']
     random.shuffle(safe_cells)
     recommended = ", ".join(safe_cells[:4])
+    
     title = LANG[lang]['signal_title'].format(traps=traps)
     hint = LANG[lang]['signal_hint'].format(cells=recommended, left=signals_left_str)
+    
     return title + f"<code>{grid_text}</code>" + hint
 
 def get_fake_win(lang='ru'):
@@ -150,6 +161,7 @@ def get_fake_win(lang='ru'):
     if lang == 'ru': return f"🔥 <i>{name} только что забрал {win:,} ₽ в Mines (x{mult})!</i>"
     else: return f"🔥 <i>{name} just cashed out ${win:,} in Mines (x{mult})!</i>"
 
+# --- Обработчики ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, command: CommandObject):
     uid = message.from_user.id
@@ -205,10 +217,13 @@ async def cb_reg(call: types.CallbackQuery):
 async def cb_sign(call: types.CallbackQuery):
     u = get_user(call.from_user.id)
     is_registered = u and u['postback_id'] and u['postback_id'].lower() != "null"
+    
     if not u or (not is_registered and u['ref_count'] < 3):
         lang = u['lang'] if u else 'ru'
         await call.message.answer(LANG[lang]['need_reg'], reply_markup=reg_kb(call.from_user.id, lang))
-        await call.answer(); return
+        await call.answer()
+        return
+        
     await call.message.edit_text(LANG[u['lang']]['choose_traps'], reply_markup=traps_menu(u['lang']))
     await call.answer()
 
@@ -216,6 +231,7 @@ async def cb_sign(call: types.CallbackQuery):
 async def cb_gen(call: types.CallbackQuery):
     uid = call.from_user.id
     u = get_user(uid); lang = u['lang'] if u else 'ru'
+    
     is_admin = (str(uid) == str(ADMIN_ID))
     today = datetime.date.today().isoformat()
     daily = 0 if u['last_signal_date'] != today else u['daily_signals']
@@ -237,15 +253,64 @@ async def cb_gen(call: types.CallbackQuery):
     signal_text = generate_mines_grid(lang, traps, signals_left_str)
     await call.message.edit_text(text=signal_text, reply_markup=sign_kb(lang)); await call.answer()
 
+# ============================================================
+# АДМИН ПАНЕЛЬ И РАССЫЛКА
+# ============================================================
 @dp.message(Command("admin"))
 async def cmd_adm(msg: types.Message):
-    u = get_user(msg.from_user.id); lang = u['lang'] if u else 'ru'
-    if str(msg.from_user.id) == str(ADMIN_ID): await msg.answer(LANG[lang]['admin_panel'])
-    else: await msg.answer(LANG[lang]['not_admin'])
+    if str(msg.from_user.id) != str(ADMIN_ID):
+        u = get_user(msg.from_user.id); lang = u['lang'] if u else 'ru'
+        await msg.answer(LANG[lang]['not_admin'])
+        return
+        
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📢 Сделать рассылку", callback_data="bc_start")],
+        [InlineKeyboardButton(text="📊 Статистика", callback_data="stat_start")]
+    ])
+    await msg.answer(LANG['ru']['admin_panel'], reply_markup=kb)
+
+@dp.callback_query(F.data == "stat_start")
+async def cb_stat(call: types.CallbackQuery):
+    if str(call.from_user.id) != str(ADMIN_ID): return
+    with sqlite3.connect(DB_PATH) as conn:
+        total = conn.execute("SELECT COUNT(*) FROM user").fetchone()[0]
+        regs = conn.execute("SELECT COUNT(*) FROM user WHERE postback_id IS NOT NULL AND postback_id != 'null'").fetchone()[0]
+        deposit = conn.execute("SELECT SUM(total_deposit) FROM user").fetchone()[0] or 0
+    text = f"📊 <b>Статистика:</b>\n\n👥 Юзеров: <b>{total}</b>\n✅ Регистраций: <b>{regs}</b>\n💰 Депозитов: <b>${deposit:.2f}</b>"
+    await call.message.edit_text(text, reply_markup=call.message.reply_markup)
+    await call.answer()
+
+@dp.callback_query(F.data == "bc_start")
+async def cb_bc_start(call: types.CallbackQuery, state: FSMContext):
+    if str(call.from_user.id) != str(ADMIN_ID): return
+    await call.message.edit_text("📢 Отправьте текст (или фото/видео) для рассылки всем пользователям:")
+    await Broadcast.waiting_msg.set()
+    await call.answer()
+
+@dp.message_handler(state=Broadcast.waiting_msg, content_types=['text', 'photo', 'video'])
+async def process_broadcast(message: types.Message, state: FSMContext):
+    if str(message.from_user.id) != str(ADMIN_ID): return
+    await state.finish()
+    
+    with sqlite3.connect(DB_PATH) as conn:
+        users = conn.execute("SELECT user_id FROM user").fetchall()
+    
+    await message.answer(f"🚀 Начинаю рассылку на {len(users)} пользователей...")
+    
+    success = 0
+    for (uid,) in users:
+        try:
+            await message.copy_to(chat_id=uid)
+            success += 1
+            await asyncio.sleep(0.05)
+        except Exception:
+            pass
+            
+    await message.answer(f"✅ <b>Рассылка завершена!</b>\n\nУспешно доставлено: <b>{success}</b> из <b>{len(users)}</b>")
 
 @dp.message(Command("top"))
 async def cmd_top(msg: types.Message):
-    if str(msg.from_user.id) != ADMIN_ID: return
+    if str(msg.from_user.id) != str(ADMIN_ID): return
     with sqlite3.connect(DB_PATH) as conn:
         rows = conn.execute("SELECT u1.user_id, COUNT(u2.user_id) FROM user u1 JOIN user u2 ON u1.user_id = u2.referrer_id WHERE u2.postback_id IS NOT NULL GROUP BY u1.user_id ORDER BY 2 DESC LIMIT 10").fetchall()
     text = "🏆 <b>ТОП-10</b>\n\n" + "".join([f"{i}. ID: <code>{r[0]}</code> — <b>{r[1]} билетов</b>\n" for i, r in enumerate(rows, 1)]) if rows else "Нет рефералов."
@@ -285,7 +350,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
             except: self.send_response(400); self.end_headers(); return
             
             with sqlite3.connect(DB_PATH) as conn: 
-                # Обновляем и postback_id, и сумму депозита
                 conn.execute("INSERT INTO user (user_id, postback_id, total_deposit) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET postback_id = excluded.postback_id, total_deposit = user.total_deposit + excluded.total_deposit", (uid, s2, amount))
                 conn.commit()
             

@@ -26,8 +26,10 @@ from aiogram.fsm.storage.memory import MemoryStorage
 # ============================================================
 #  НАСТРОЙКИ MINES BOT
 # ============================================================
-BOT_TOKEN = "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ" 
-ADMIN_ID  = "6109042131"
+# ВАЖНО: Токен лучше задавать в переменных окружения Bothost (BOT_TOKEN).
+# Если токен не задан в окружении, используется тот, что ниже.
+BOT_TOKEN = os.getenv("BOT_TOKEN", "7303209127:AAGHrwgFYbmrh3LFW7mxZl63Yefs_ITYbVQ") 
+ADMIN_ID  = os.getenv("ADMIN_ID", "6109042131")
 WEB_PORT  = int(os.getenv("PORT", "5000"))
 
 PARTNER_URL = "https://r1wagwk.com/v3/2158/1win-mines?p=4fgb&sub1={uid}"
@@ -172,8 +174,14 @@ log = logging.getLogger("mines")
 class Broadcast(StatesGroup):
     waiting_msg = State()
 
+# Функция безопасного подключения к БД (защита от блокировок)
+def get_db():
+    conn = sqlite3.connect(DB_PATH, timeout=20)
+    conn.execute("PRAGMA journal_mode=WAL;") # Режим WAL предотвращает зависания при одновременном доступе
+    return conn
+
 def init_db():
-    with sqlite3.connect(DB_PATH) as conn:
+    with get_db() as conn:
         conn.execute("CREATE TABLE IF NOT EXISTS user (user_id INTEGER PRIMARY KEY, postback_id TEXT, language TEXT DEFAULT 'ru', referrer_id INTEGER, daily_signals INTEGER DEFAULT 0, last_signal_date TEXT, total_deposit REAL DEFAULT 0)")
         conn.execute("""
             CREATE TABLE IF NOT EXISTS events (
@@ -204,7 +212,7 @@ def set_notify_enabled(state: bool):
 
 def log_event(uid: int, event: str):
     try:
-        with sqlite3.connect(DB_PATH) as conn:
+        with get_db() as conn:
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             conn.execute("INSERT INTO events (user_id, event, created_at) VALUES (?, ?, ?)", (uid, event, now))
             conn.commit()
@@ -223,7 +231,7 @@ async def notify_admin(text: str, uid: int = None):
         log.error(f"Notify admin error: {e}")
 
 def get_user(uid: int):
-    with sqlite3.connect(DB_PATH) as conn:
+    with get_db() as conn:
         row = conn.execute("SELECT postback_id, language, referrer_id, daily_signals, last_signal_date, total_deposit FROM user WHERE user_id = ?", (uid,)).fetchone()
         if row:
             lang = row[1] if row[1] in LANG else 'ru'
@@ -295,7 +303,7 @@ def get_fake_win(lang='ru'):
 async def cmd_start(message: types.Message, command: CommandObject):
     uid = message.from_user.id
     ref = command.args
-    with sqlite3.connect(DB_PATH) as conn:
+    with get_db() as conn:
         conn.execute("INSERT OR IGNORE INTO user (user_id) VALUES (?)", (uid,))
         if ref and ref.isdigit() and int(ref) != uid:
             conn.execute("UPDATE user SET referrer_id = ? WHERE user_id = ? AND referrer_id IS NULL", (int(ref), uid))
@@ -310,16 +318,36 @@ async def cmd_start(message: types.Message, command: CommandObject):
 
 @dp.callback_query(F.data.startswith("set_lang_"))
 async def cb_set_lang(call: types.CallbackQuery):
-    lang = call.data.split("_")[-1]
-    log_event(call.from_user.id, f"set_lang_{lang}")
-    with sqlite3.connect(DB_PATH) as conn: conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (lang, call.from_user.id)); conn.commit()
-    await call.answer(LANG[lang]['lang_set'])
-    welcome_text = f"{LANG[lang]['welcome']}\n\n{get_fake_win(lang)}"
-    
-    await call.message.answer(welcome_text, reply_markup=get_reply_menu(lang))
-    await call.message.delete()
-    
-    await notify_admin(f"🌐 Выбрал язык: <b>{lang.upper()}</b>", call.from_user.id)
+    try:
+        lang = call.data.split("_")[-1]
+        log_event(call.from_user.id, f"set_lang_{lang}")
+        
+        with get_db() as conn: 
+            conn.execute("UPDATE user SET language = ? WHERE user_id = ?", (lang, call.from_user.id))
+            conn.commit()
+            
+        # Сразу убираем "часики" загрузки на кнопке
+        await call.answer(LANG[lang]['lang_set'])
+        
+        welcome_text = f"{LANG[lang]['welcome']}\n\n{get_fake_win(lang)}"
+        
+        # Отправляем новое сообщение и показываем клавиатуру
+        await bot.send_message(
+            chat_id=call.from_user.id, 
+            text=welcome_text, 
+            reply_markup=get_reply_menu(lang)
+        )
+        
+        # Пытаемся удалить старое сообщение с выбором языка
+        try:
+            await call.message.delete()
+        except Exception as e:
+            log.warning(f"Не удалось удалить сообщение: {e}")
+            
+        await notify_admin(f"🌐 Выбрал язык: <b>{lang.upper()}</b>", call.from_user.id)
+    except Exception as e:
+        log.error(f"Ошибка в обработчике языка: {e}", exc_info=True)
+        await call.answer("Произошла ошибка. Попробуйте еще раз.", show_alert=True)
 
 @dp.callback_query(F.data == "lang_menu")
 async def cb_lang_menu(call: types.CallbackQuery):
@@ -327,7 +355,7 @@ async def cb_lang_menu(call: types.CallbackQuery):
     await call.answer()
 
 # ============================================================
-# ОБРАБОТЧИКИ REPLY-КНОПОК (Навигация) — мультиязычные!
+# ОБРАБОТЧИКИ REPLY-КНОПОК
 # ============================================================
 sign_texts = [LANG[l]['btn_sign'] for l in LANG]
 reg_texts = [LANG[l]['btn_reg'] for l in LANG]
@@ -412,11 +440,11 @@ async def cb_gen(call: types.CallbackQuery):
             await call.answer("⚠️ Limit reached!", show_alert=True)
             await call.message.answer(LANG[lang]['limit_msg']); return
         daily += 1
-        with sqlite3.connect(DB_PATH) as conn:
+        with get_db() as conn:
             conn.execute("UPDATE user SET daily_signals = ?, last_signal_date = ? WHERE user_id = ?", (daily, today, uid)); conn.commit()
         signals_left_str = LANG[lang]['left_signals'].format(left=5 - daily)
     else:
-        with sqlite3.connect(DB_PATH) as conn:
+        with get_db() as conn:
             conn.execute("UPDATE user SET last_signal_date = ? WHERE user_id = ?", (today, uid)); conn.commit()
         signals_left_str = "💡 <i>Signals left: ∞ (God Mode)</i>\n\n"
 
@@ -465,7 +493,7 @@ async def cb_toggle_notify(call: types.CallbackQuery):
 @dp.callback_query(F.data == "stat_start")
 async def cb_stat(call: types.CallbackQuery):
     if str(call.from_user.id) != str(ADMIN_ID): return
-    with sqlite3.connect(DB_PATH) as conn:
+    with get_db() as conn:
         total = conn.execute("SELECT COUNT(*) FROM user").fetchone()[0]
         regs = conn.execute("SELECT COUNT(*) FROM user WHERE postback_id IS NOT NULL AND postback_id != 'null'").fetchone()[0]
         deposit = conn.execute("SELECT SUM(total_deposit) FROM user").fetchone()[0] or 0
@@ -476,7 +504,7 @@ async def cb_stat(call: types.CallbackQuery):
 @dp.callback_query(F.data == "funnel_start")
 async def cb_funnel(call: types.CallbackQuery):
     if str(call.from_user.id) != str(ADMIN_ID): return
-    with sqlite3.connect(DB_PATH) as conn:
+    with get_db() as conn:
         starts = conn.execute("SELECT COUNT(DISTINCT user_id) FROM events WHERE event = 'start'").fetchone()[0]
         lang_selected = conn.execute("SELECT COUNT(DISTINCT user_id) FROM events WHERE event LIKE 'set_lang_%'").fetchone()[0]
         reg_clicks = conn.execute("SELECT COUNT(DISTINCT user_id) FROM events WHERE event = 'click_register_btn'").fetchone()[0]
@@ -498,7 +526,7 @@ async def cb_funnel(call: types.CallbackQuery):
 @dp.callback_query(F.data == "events_start")
 async def cb_events(call: types.CallbackQuery):
     if str(call.from_user.id) != str(ADMIN_ID): return
-    with sqlite3.connect(DB_PATH) as conn:
+    with get_db() as conn:
         rows = conn.execute("SELECT event, COUNT(*) FROM events GROUP BY event ORDER BY 2 DESC LIMIT 15").fetchall()
     text = "🔥 <b>ТОП-15 ДЕЙСТВИЙ:</b>\n\n"
     for event, count in rows:
@@ -518,7 +546,7 @@ async def cb_bc_start(call: types.CallbackQuery, state: FSMContext):
 async def process_broadcast(message: types.Message, state: FSMContext):
     if str(message.from_user.id) != str(ADMIN_ID): return
     await state.clear()
-    with sqlite3.connect(DB_PATH) as conn:
+    with get_db() as conn:
         users = conn.execute("SELECT user_id FROM user").fetchall()
     await message.answer(f"🚀 Начинаю рассылку на {len(users)} пользователей...")
     success = 0
@@ -533,7 +561,7 @@ async def process_broadcast(message: types.Message, state: FSMContext):
 @dp.message(Command("top"))
 async def cmd_top(msg: types.Message):
     if str(msg.from_user.id) != str(ADMIN_ID): return
-    with sqlite3.connect(DB_PATH) as conn:
+    with get_db() as conn:
         rows = conn.execute("SELECT u1.user_id, COUNT(u2.user_id) FROM user u1 JOIN user u2 ON u1.user_id = u2.referrer_id WHERE u2.postback_id IS NOT NULL GROUP BY u1.user_id ORDER BY 2 DESC LIMIT 10").fetchall()
     text = "🏆 <b>ТОП-10</b>\n\n" + "".join([f"{i}. ID: <code>{r[0]}</code> — <b>{r[1]} билетов</b>\n" for i, r in enumerate(rows, 1)]) if rows else "Нет рефералов."
     await msg.answer(text)
@@ -547,7 +575,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if p.path == '/health': self.send_response(200); self.end_headers(); self.wfile.write(b'{"ok": true}'); return
         
         if p.path == '/api/stats':
-            with sqlite3.connect(DB_PATH) as conn:
+            with get_db() as conn:
                 total = conn.execute("SELECT COUNT(*) FROM user").fetchone()[0]
                 regs = conn.execute("SELECT COUNT(*) FROM user WHERE postback_id IS NOT NULL AND postback_id != 'null'").fetchone()[0]
                 total_deposit = conn.execute("SELECT SUM(total_deposit) FROM user").fetchone()[0] or 0
@@ -571,7 +599,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 amount = float(amount_str) if amount_str else 0.0
             except: self.send_response(400); self.end_headers(); return
             
-            with sqlite3.connect(DB_PATH) as conn: 
+            with get_db() as conn: 
                 conn.execute("INSERT INTO user (user_id, postback_id, total_deposit) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET postback_id = excluded.postback_id, total_deposit = user.total_deposit + excluded.total_deposit", (uid, s2, amount))
                 conn.commit()
             
@@ -590,13 +618,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_response(200); self.end_headers(); self.wfile.write(f"sub1={s1}; subid={s2}; amount={amount}; OK".encode('utf-8')); return
         self.send_response(404); self.end_headers()
 
+# ============================================================
+# ЗАПУСК
+# ============================================================
 async def main():
+    # ВАЖНО: Очищаем возможные вебхуки, чтобы кнопки работали корректно
+    await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_chat_menu_button(menu_button=MenuButtonCommands(text="Menu"))
     log.info("Bot starting polling...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     init_db()
+    # Запуск веб-сервера в отдельном потоке
     threading.Thread(target=lambda: http.server.HTTPServer(('0.0.0.0', WEB_PORT), Handler).serve_forever(), daemon=True).start()
     log.info("Web server started on port %s", WEB_PORT)
     asyncio.run(main())
